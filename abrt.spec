@@ -17,6 +17,7 @@ Source1: abrt.init
 Source2: 00abrt.sh
 Source3: 00abrt.csh
 # (fc) 1.0.8-1mdv fix format security error
+# (misc) sent upstream https://fedorahosted.org/abrt/attachment/ticket/120
 Patch0: abrt-1.0.8-format_security.patch
 # (fc) 1.0.8-1mdv fix build with rpm 4.6
 Patch1: abrt-1.0.8-rpm46.patch
