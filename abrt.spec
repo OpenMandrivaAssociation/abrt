@@ -8,7 +8,7 @@
 Summary: Automatic bug detection and reporting tool
 Name: abrt
 Version: 1.0.8
-Release: %mkrel 1
+Release: %mkrel 2
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
@@ -25,6 +25,8 @@ Patch1: abrt-1.0.8-rpm46.patch
 Patch2: abrt_disable_gpgcheck.diff
 # (fc) 1.0.8-1mdv use mdv bugzilla
 Patch3: abrt-mdvbugzilla.patch
+# (fc) 1.0.8-2mdv port gnomevfs to gio
+Patch4: abrt-1.0.8-gio.patch
 BuildRequires: dbus-devel
 BuildRequires: gtk2-devel
 BuildRequires: curl-devel
@@ -75,8 +77,8 @@ Summary: %{name}'s gui
 Group: Graphical desktop/Other
 Requires: %{name} = %{version}-%{release}
 Requires: dbus-python, pygtk2.0, pygtk2.0-libglade
-Requires: gnome-python-gnomevfs
-# gnome-python2-gnomekeyring
+Requires: python-gobject
+Requires: gnome-python-desktop
 
 %description gui
 GTK+ wizard for convenient bug reporting.
@@ -108,8 +110,6 @@ Group: System/Libraries
 Requires: curl
 Requires: %{name} = %{version}-%{release}
 #Obsoletes: kerneloops
-#Obsoletes: abrt-plugin-kerneloops
-#Obsoletes: abrt-plugin-kerneloopsreporter
 
 %description addon-kerneloops
 This package contains plugin for collecting kernel crash information
@@ -232,6 +232,7 @@ Virtual package to make easy default installation on desktop environments.
 %patch1 -p1 -b .rpm46
 %patch2 -p1 -b .disable_signature_check
 %patch3 -p1 -b .mdvbugzilla
+%patch4 -p1 -b .gio
 
 %build
 %configure2_5x
