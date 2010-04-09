@@ -8,7 +8,7 @@
 Summary: Automatic bug detection and reporting tool
 Name: abrt
 Version: 1.0.8
-Release: %mkrel 2
+Release: %mkrel 3
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
@@ -16,6 +16,7 @@ Source: https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
 Source1: abrt.init
 Source2: 00abrt.sh
 Source3: 00abrt.csh
+Source4: abrt-debuginfo-install
 # (fc) 1.0.8-1mdv fix format security error
 # (misc) sent upstream https://fedorahosted.org/abrt/attachment/ticket/120
 Patch0: abrt-1.0.8-format_security.patch
@@ -27,6 +28,8 @@ Patch2: abrt_disable_gpgcheck.diff
 Patch3: abrt-mdvbugzilla.patch
 # (fc) 1.0.8-2mdv port gnomevfs to gio
 Patch4: abrt-1.0.8-gio.patch
+# (pt) 1.0.8-3mdv generate stacktrace twice to get missing -debug packages
+Patch5: abrt-1.0.8-debug.patch
 BuildRequires: dbus-devel
 BuildRequires: gtk2-devel
 BuildRequires: curl-devel
@@ -233,6 +236,7 @@ Virtual package to make easy default installation on desktop environments.
 %patch2 -p1 -b .disable_signature_check
 %patch3 -p1 -b .mdvbugzilla
 %patch4 -p1 -b .gio
+%patch5 -p1 -b .debug
 
 %build
 %configure2_5x
@@ -265,6 +269,9 @@ install -m755 %SOURCE2 %SOURCE3 $RPM_BUILD_ROOT%{_sysconfdir}/profile.d/
 desktop-file-install \
         --dir ${RPM_BUILD_ROOT}%{_sysconfdir}/xdg/autostart \
         src/Applet/%{name}-applet.desktop
+
+# replace with our own version
+cat %{SOURCE4} > ${RPM_BUILD_ROOT}/usr/bin/abrt-debuginfo-install
 
 %clean
 rm -rf $RPM_BUILD_ROOT
