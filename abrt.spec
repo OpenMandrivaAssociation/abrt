@@ -1,6 +1,6 @@
 %define lib_major 0
 %define lib_name %mklibname %{name} %{lib_major}
-%define lib_name_devel %mklibname %{name} %{lib_major} -d
+%define lib_name_devel %mklibname %{name} -d
 
 %define _disable_ld_no_undefined 1
 
@@ -71,6 +71,7 @@ Summary: Development libraries for %{name}
 Group: Development/C
 Requires: %{lib_name} = %{version}-%{release}
 Requires: abrt = %{version}-%{release}
+Obsoletes: %{_lib}abrt0-devel
 
 %description -n %{lib_name_devel}
 Development libraries and headers for %{name}.
