@@ -7,8 +7,8 @@
 
 Summary: Automatic bug detection and reporting tool
 Name: abrt
-Version: 1.0.8
-Release: %mkrel 3
+Version: 1.1.1
+Release: %mkrel 1
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
@@ -19,17 +19,21 @@ Source3: 00abrt.csh
 Source4: abrt-debuginfo-install
 # (fc) 1.0.8-1mdv fix format security error
 # (misc) sent upstream https://fedorahosted.org/abrt/attachment/ticket/120
-Patch0: abrt-1.0.8-format_security.patch
+Patch0: abrt-1.1.0-format_security.patch
 # (fc) 1.0.8-1mdv fix build with rpm 4.6
 Patch1: abrt-1.0.8-rpm46.patch
 # (fc) 1.0.8-1mdv disable package signature check
 Patch2: abrt_disable_gpgcheck.diff
 # (fc) 1.0.8-1mdv use mdv bugzilla
 Patch3: abrt-mdvbugzilla.patch
-# (fc) 1.0.8-2mdv port gnomevfs to gio
-Patch4: abrt-1.0.8-gio.patch
 # (pt) 1.0.8-3mdv generate stacktrace twice to get missing -debug packages
-Patch5: abrt-1.0.8-debug.patch
+Patch5: abrt-1.1.0-debug.patch
+# (fc) 1.1.0-1mdv parse mandriva-release
+Patch6: abrt-1.1.0-mandriva-release.patch
+# (fc) 1.1.0-1mdv disable nspluginwrapper-i386 (Mdv bug #59237)
+Patch7: abrt-1.1.0-nspluginwrapper.patch
+# (fc) 1.1.0-1mdv fix for non UTF-8 locale
+Patch8: abrt-1.1.1-nonutf8-locale.patch
 BuildRequires: dbus-devel
 BuildRequires: gtk2-devel
 BuildRequires: curl-devel
@@ -96,17 +100,6 @@ Requires: %{name} = %{version}-%{release}
 %description addon-ccpp
 This package contains hook for C/C++ crashed programs and %{name}'s C/C++
 analyzer plugin.
-
-#%package plugin-firefox
-#Summary: %{name}'s Firefox analyzer plugin
-#Group: System/Libraries
-#Requires: gdb >= 7.0-3
-#Requires: elfutils
-#Requires: yum-utils
-#Requires: %{name} = %{version}-%{release}
-
-#%description plugin-firefox
-#This package contains hook for Firefox
 
 %package addon-kerneloops
 Summary: %{name}'s kerneloops addon
@@ -223,7 +216,6 @@ Requires: %{name}-addon-ccpp, %{name}-addon-python
 Requires: gdb >= 7.0-3
 Requires: %{name}-gui
 Requires: %{name}-plugin-logger, %{name}-plugin-bugzilla, %{name}-plugin-runapp
-#Requires: %{name}-plugin-firefox
 #Obsoletes: bug-buddy
 #Provides: bug-buddy
 
@@ -236,8 +228,10 @@ Virtual package to make easy default installation on desktop environments.
 %patch1 -p1 -b .rpm46
 %patch2 -p1 -b .disable_signature_check
 %patch3 -p1 -b .mdvbugzilla
-%patch4 -p1 -b .gio
 %patch5 -p1 -b .debug
+%patch6 -p1 -b .mandriva-release
+%patch7 -p1 -b .nspluginwrapper
+%patch8 -p1 -b .nonutf8-locale
 
 %build
 %configure2_5x
@@ -273,6 +267,10 @@ desktop-file-install \
 
 # replace with our own version
 cat %{SOURCE4} > ${RPM_BUILD_ROOT}/usr/bin/abrt-debuginfo-install
+
+#remove RH specific plugins
+rm -f $RPM_BUILD_ROOT%{_libdir}/abrt/{librhfastcheck.so,librhticket.so}
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -331,8 +329,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/%{name}-gui
 %{_datadir}/%{name}
 %{_datadir}/applications/%{name}.desktop
-%{_datadir}/pixmaps/abrt.png
-%{_datadir}/icons/hicolor/48x48/apps/*.png
+%{_datadir}/icons/hicolor/*/*/*.png
 %{_bindir}/%{name}-applet
 %{_sysconfdir}/xdg/autostart/%{name}-applet.desktop
 
@@ -343,9 +340,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/%{name}/libCCpp.so*
 %{_libexecdir}/abrt-hook-ccpp
 %{_sysconfdir}/profile.d/00abrt.*
-
-#%files plugin-firefox
-#%{_libdir}/%{name}/libFirefox.so*
 
 %files addon-kerneloops
 %defattr(-,root,root,-)
@@ -416,6 +410,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(4755, abrt, abrt) %{_libexecdir}/abrt-hook-python
 %{_libdir}/%{name}/libPython.so*
 %{py_puresitedir}/*.py*
+%{py_puresitedir}/*.pth
 
 
 %files cli
