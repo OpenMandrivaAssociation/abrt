@@ -7,7 +7,7 @@
 
 Summary: Automatic bug detection and reporting tool
 Name: abrt
-Version: 1.1.1
+Version: 1.1.13
 Release: %mkrel 1
 License: GPLv2+
 Group: System/Base
@@ -27,11 +27,11 @@ Patch2: abrt_disable_gpgcheck.diff
 # (fc) 1.0.8-1mdv use mdv bugzilla
 Patch3: abrt-mdvbugzilla.patch
 # (pt) 1.0.8-3mdv generate stacktrace twice to get missing -debug packages
-Patch5: abrt-1.1.0-debug.patch
+Patch5: abrt-1.1.13-debug.patch
 # (fc) 1.1.0-1mdv parse mandriva-release
-Patch6: abrt-1.1.0-mandriva-release.patch
+Patch6: abrt-1.1.13-mandriva-release.patch
 # (fc) 1.1.0-1mdv disable nspluginwrapper-i386 (Mdv bug #59237)
-Patch7: abrt-1.1.0-nspluginwrapper.patch
+Patch7: abrt-1.1.13-nspluginwrapper.patch
 # (fc) 1.1.0-1mdv fix for non UTF-8 locale
 Patch8: abrt-1.1.1-nonutf8-locale.patch
 BuildRequires: dbus-devel
@@ -57,6 +57,7 @@ Requires(pre): rpm-helper
 Requires(post): rpm-helper
 Requires(preun): rpm-helper
 Requires(postun): rpm-helper
+Obsoletes: plugin-catcut
 
 %description
 %{name} is a tool to help users to detect defects in applications and
@@ -156,20 +157,22 @@ Requires: %{name} = %{version}-%{release}
 %description plugin-bugzilla
 Plugin to report bugs into the bugzilla.
 
-%package plugin-catcut
-Summary: %{name}'s catcut plugin
-Group: System/Libraries
-Requires: %{name} = %{version}-%{release}
+##%package plugin-catcut
+#Summary: %{name}'s catcut plugin
+#Group: System/Libraries
+#Requires: %{name} = %{version}-%{release}
 
-%description plugin-catcut
-Plugin to report bugs into the catcut.
+##%description plugin-catcut
+#Plugin to report bugs into the catcut.
 
-%package plugin-ticketuploader
+%package plugin-reportuploader
 Summary: %{name}'s ticketuploader plugin
 Group: System/Libraries
 Requires: %{name} = %{version}-%{release}
+Obsoletes: plugin-ticketuploader
+Provides: plugin-ticketuploader
 
-%description plugin-ticketuploader
+%description plugin-reportuploader
 Plugin to report bugs into anonymous FTP site associated with ticketing system.
 
 %package plugin-filetransfer
@@ -227,10 +230,10 @@ Virtual package to make easy default installation on desktop environments.
 %patch0 -p1 -b .format_security
 %patch1 -p1 -b .rpm46
 %patch2 -p1 -b .disable_signature_check
-%patch3 -p1 -b .mdvbugzilla
-%patch5 -p1 -b .debug
-%patch6 -p1 -b .mandriva-release
-%patch7 -p1 -b .nspluginwrapper
+%patch3 -p0 -b .mdvbugzilla
+%patch5 -p0 -b .debug
+%patch6 -p0 -b .mandriva-release
+%patch7 -p0 -b .nspluginwrapper
 %patch8 -p1 -b .nonutf8-locale
 
 %build
@@ -240,44 +243,45 @@ sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
 %make
 
 %install
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 %makeinstall_std
 %find_lang %{name}
 
-#rm -rf $RPM_BUILD_ROOT/%{_libdir}/lib*.la
-#rm -rf $RPM_BUILD_ROOT/%{_libdir}/%{name}/lib*.la
+#rm -rf %{buildroot}/%{_libdir}/lib*.la
+#rm -rf %{buildroot}/%{_libdir}/%{name}/lib*.la
 # remove all .la and .a files
-find $RPM_BUILD_ROOT -name '*.la' -or -name '*.a' | xargs rm -f
-mkdir -p ${RPM_BUILD_ROOT}/%{_initrddir}
-install -m 755 %SOURCE1 ${RPM_BUILD_ROOT}/%{_initrddir}/abrtd
-mkdir -p $RPM_BUILD_ROOT/var/cache/%{name}
-mkdir -p $RPM_BUILD_ROOT/var/cache/%{name}-di
-mkdir -p $RPM_BUILD_ROOT/var/run/%{name}
+find %{buildroot} -name '*.la' -or -name '*.a' | xargs rm -f
+mkdir -p %{buildroot}/%{_initrddir}
+install -m 755 %SOURCE1 %{buildroot}/%{_initrddir}/abrtd
+mkdir -p %{buildroot}/var/cache/%{name}
+mkdir -p %{buildroot}/var/cache/%{name}-di
+mkdir -p %{buildroot}/var/run/%{name}
 # remove fedora gpg key
-rm -f $RPM_BUILD_ROOT%{_sysconfdir}/abrt/gpg_keys
-touch $RPM_BUILD_ROOT%{_sysconfdir}/abrt/gpg_keys
+rm -f %{buildroot}%{_sysconfdir}/abrt/gpg_keys
+touch %{buildroot}%{_sysconfdir}/abrt/gpg_keys
 
 # install ulimit disabler
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/profile.d/
-install -m755 %SOURCE2 %SOURCE3 $RPM_BUILD_ROOT%{_sysconfdir}/profile.d/
+mkdir -p %{buildroot}%{_sysconfdir}/profile.d/
+install -m755 %SOURCE2 %SOURCE3 %{buildroot}%{_sysconfdir}/profile.d/
 
 desktop-file-install \
-        --dir ${RPM_BUILD_ROOT}%{_sysconfdir}/xdg/autostart \
+        --dir %{buildroot}%{_sysconfdir}/xdg/autostart \
         src/Applet/%{name}-applet.desktop
 
 # replace with our own version
-cat %{SOURCE4} > ${RPM_BUILD_ROOT}/usr/bin/abrt-debuginfo-install
+cat %{SOURCE4} > %{buildroot}/usr/bin/%{name}-debuginfo-install
 
 #remove RH specific plugins
-rm -f $RPM_BUILD_ROOT%{_libdir}/abrt/{librhfastcheck.so,librhticket.so}
+rm -f %{buildroot}%{_libdir}/%{name}/{RHTSupport.glade,libRHTSupport.so}
+rm -f %{buildroot}%{_sysconfdir}/%{name}/plugins/RHTSupport.conf
 
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %pre
-%_pre_useradd abrt %{_sysconfdir}/abrt /bin/nologin
-%_pre_groupadd abrt abrt
+%_pre_useradd %{name} %{_sysconfdir}/%{name} /bin/nologin
+%_pre_groupadd %{name} %{name}
 
 %post
 %_post_service %{name}d
@@ -286,8 +290,8 @@ rm -rf $RPM_BUILD_ROOT
 %_preun_service %{name}d
 
 %postun
-%_postun_userdel abrt
-%_postun_groupdel abrt abrt
+%_postun_userdel %{name}
+%_postun_groupdel %{name} %{name}
 
 
 %files -f %{name}.lang
@@ -300,7 +304,7 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/%{name}/gpg_keys
 %config(noreplace) %{_sysconfdir}/dbus-1/system.d/dbus-%{name}.conf
 %{_initrddir}/%{name}d
-%dir %attr(0755, abrt, abrt) %{_localstatedir}/cache/%{name}
+%dir %attr(0755, %{name}, %{name}) %{_localstatedir}/cache/%{name}
 %dir /var/run/%{name}
 %dir %{_sysconfdir}/%{name}
 %dir %{_sysconfdir}/%{name}/plugins
@@ -323,6 +327,8 @@ rm -rf $RPM_BUILD_ROOT
 %files -n %{lib_name_devel}
 %defattr(-,root,root,-)
 %{_libdir}/lib*.so
+%{_includedir}/%{name}/*.h
+%{_libdir}/pkgconfig/%{name}.pc
 
 %files gui
 %defattr(-,root,root,-)
@@ -349,21 +355,21 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/%{name}/libKerneloopsScanner.so*
 %{_mandir}/man7/%{name}-KerneloopsScanner.7.*
 %{_libdir}/%{name}/libKerneloopsReporter.so*
-%{_libdir}/%{name}/KerneloopsReporter.GTKBuilder
+%{_libdir}/%{name}/KerneloopsReporter.glade
 %{_mandir}/man7/%{name}-KerneloopsReporter.7.*
 
 %files plugin-logger
 %defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Logger.conf
 %{_libdir}/%{name}/libLogger.so*
-%{_libdir}/%{name}/Logger.GTKBuilder
+%{_libdir}/%{name}/Logger.glade
 %{_mandir}/man7/%{name}-Logger.7.*
 
 %files plugin-mailx
 %defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Mailx.conf
 %{_libdir}/%{name}/libMailx.so*
-%{_libdir}/%{name}/Mailx.GTKBuilder
+%{_libdir}/%{name}/Mailx.glade
 %{_mandir}/man7/%{name}-Mailx.7.*
 
 %files plugin-runapp
@@ -381,22 +387,23 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Bugzilla.conf
 %{_libdir}/%{name}/libBugzilla.so*
-%{_libdir}/%{name}/Bugzilla.GTKBuilder
+%{_libdir}/%{name}/Bugzilla.glade
 %{_mandir}/man7/%{name}-Bugzilla.7.*
 
-%files plugin-catcut
-%defattr(-,root,root,-)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/Catcut.conf
-%{_libdir}/%{name}/libCatcut.so*
-%{_libdir}/%{name}/Catcut.GTKBuilder
+##%files plugin-catcut
+#%defattr(-,root,root,-)
+#%config(noreplace) %{_sysconfdir}/%{name}/plugins/Catcut.conf
+#%{_libdir}/%{name}/libCatcut.so*
+#%{_libdir}/%{name}/Catcut.GTKBuilder
 #%{_mandir}/man7/%{name}-Catcut.7.*
 
-%files plugin-ticketuploader
+%files plugin-reportuploader
 %defattr(-,root,root,-)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/TicketUploader.conf
-%{_libdir}/%{name}/libTicketUploader.so*
-%{_libdir}/%{name}/TicketUploader.GTKBuilder
-%{_mandir}/man7/%{name}-TicketUploader.7.*
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/ReportUploader.conf
+%{_bindir}/%{name}-handle-upload
+%{_libdir}/%{name}/libReportUploader.so*
+%{_libdir}/%{name}/ReportUploader.glade
+%{_mandir}/man7/%{name}-ReportUploader.7.*
 
 %files plugin-filetransfer
 %defattr(-,root,root,-)
@@ -407,7 +414,7 @@ rm -rf $RPM_BUILD_ROOT
 %files addon-python
 %defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Python.conf
-%attr(4755, abrt, abrt) %{_libexecdir}/abrt-hook-python
+#%attr(4755, abrt, abrt) %{_libexecdir}/abrt-hook-python
 %{_libdir}/%{name}/libPython.so*
 %{py_puresitedir}/*.py*
 %{py_puresitedir}/*.pth
