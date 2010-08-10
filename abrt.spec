@@ -2,13 +2,13 @@
 %define lib_name %mklibname %{name} %{lib_major}
 %define lib_name_devel %mklibname %{name} -d
 
-%define _disable_ld_no_undefined 1
+%define _disable_ld_no_undefined 0
 
 
 Summary: Automatic bug detection and reporting tool
 Name: abrt
 Version: 1.1.13
-Release: %mkrel 1
+Release: %mkrel 2
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
@@ -57,7 +57,7 @@ Requires(pre): rpm-helper
 Requires(post): rpm-helper
 Requires(preun): rpm-helper
 Requires(postun): rpm-helper
-Obsoletes: plugin-catcut
+Obsoletes: plugin-catcut < 1.1.13
 
 %description
 %{name} is a tool to help users to detect defects in applications and
@@ -169,8 +169,8 @@ Plugin to report bugs into the bugzilla.
 Summary: %{name}'s ticketuploader plugin
 Group: System/Libraries
 Requires: %{name} = %{version}-%{release}
-Obsoletes: plugin-ticketuploader
-Provides: plugin-ticketuploader
+Obsoletes: plugin-ticketuploader < 1.1.13
+Provides: plugin-ticketuploader = %{version}-%{release}
 
 %description plugin-reportuploader
 Plugin to report bugs into anonymous FTP site associated with ticketing system.
