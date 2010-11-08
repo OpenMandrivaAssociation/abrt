@@ -34,6 +34,7 @@ Patch6: abrt-1.1.13-mandriva-release.patch
 Patch7: abrt-1.1.13-nspluginwrapper.patch
 # (fc) 1.1.0-1mdv fix for non UTF-8 locale
 Patch8: abrt-1.1.1-nonutf8-locale.patch
+Patch9: polkit.patch
 BuildRequires: dbus-devel
 BuildRequires: gtk2-devel
 BuildRequires: curl-devel
@@ -235,6 +236,7 @@ Virtual package to make easy default installation on desktop environments.
 %patch6 -p0 -b .mandriva-release
 %patch7 -p0 -b .nspluginwrapper
 %patch8 -p1 -b .nonutf8-locale
+%patch9 -p1 -b .polkit
 
 %build
 %configure2_5x
