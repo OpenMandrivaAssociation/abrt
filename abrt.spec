@@ -2,13 +2,10 @@
 %define lib_name %mklibname %{name} %{lib_major}
 %define lib_name_devel %mklibname %{name} -d
 
-%define _disable_ld_no_undefined 0
-
-
 Summary: Automatic bug detection and reporting tool
 Name: abrt
-Version: 1.1.13
-Release: %mkrel 3
+Version: 1.1.14
+Release: %mkrel 1
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
@@ -19,7 +16,7 @@ Source3: 00abrt.csh
 Source4: abrt-debuginfo-install
 # (fc) 1.0.8-1mdv fix format security error
 # (misc) sent upstream https://fedorahosted.org/abrt/attachment/ticket/120
-Patch0: abrt-1.1.0-format_security.patch
+Patch0: abrt-1.1.14-format_security.patch
 # (fc) 1.0.8-1mdv fix build with rpm 4.6
 Patch1: abrt-1.0.8-rpm46.patch
 # (fc) 1.0.8-1mdv disable package signature check
@@ -27,14 +24,14 @@ Patch2: abrt_disable_gpgcheck.diff
 # (fc) 1.0.8-1mdv use mdv bugzilla
 Patch3: abrt-mdvbugzilla.patch
 # (pt) 1.0.8-3mdv generate stacktrace twice to get missing -debug packages
-Patch5: abrt-1.1.13-debug.patch
+Patch5: abrt-1.1.14-debug.patch
 # (fc) 1.1.0-1mdv parse mandriva-release
 Patch6: abrt-1.1.13-mandriva-release.patch
 # (fc) 1.1.0-1mdv disable nspluginwrapper-i386 (Mdv bug #59237)
 Patch7: abrt-1.1.13-nspluginwrapper.patch
 # (fc) 1.1.0-1mdv fix for non UTF-8 locale
 Patch8: abrt-1.1.1-nonutf8-locale.patch
-Patch9: polkit.patch
+Patch10: abrt-1.1.14-link.patch
 BuildRequires: dbus-devel
 BuildRequires: gtk2-devel
 BuildRequires: curl-devel
@@ -51,6 +48,7 @@ BuildRequires: gettext
 BuildRequires: polkit-1-devel
 BuildRequires: libzip-devel, libtar-devel, bzip2-devel, zlib-devel
 BuildRequires: intltool
+BuildRequires: gnome-common
 BuildRequires: bison
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: %{lib_name} >= %{version}-%{release}
@@ -236,12 +234,11 @@ Virtual package to make easy default installation on desktop environments.
 %patch6 -p0 -b .mandriva-release
 %patch7 -p0 -b .nspluginwrapper
 %patch8 -p1 -b .nonutf8-locale
-%patch9 -p1 -b .polkit
+%patch10 -p0 -b .link
 
 %build
-%configure2_5x
-sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
-sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
+NOCONFIGURE=yes gnome-autogen.sh
+%configure2_5x --disable-rpath
 %make
 
 %install
