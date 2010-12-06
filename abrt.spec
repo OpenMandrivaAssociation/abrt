@@ -5,7 +5,7 @@
 Summary: Automatic bug detection and reporting tool
 Name: abrt
 Version: 1.1.14
-Release: %mkrel 1
+Release: %mkrel 2
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
@@ -32,6 +32,8 @@ Patch7: abrt-1.1.13-nspluginwrapper.patch
 # (fc) 1.1.0-1mdv fix for non UTF-8 locale
 Patch8: abrt-1.1.1-nonutf8-locale.patch
 Patch10: abrt-1.1.14-link.patch
+# (proyvind): port to rpm5 api
+Patch11: abrt-1.1.14-rpm5.patch
 BuildRequires: dbus-devel
 BuildRequires: gtk2-devel
 BuildRequires: curl-devel
@@ -235,6 +237,9 @@ Virtual package to make easy default installation on desktop environments.
 %patch7 -p0 -b .nspluginwrapper
 %patch8 -p1 -b .nonutf8-locale
 %patch10 -p0 -b .link
+# just back out patch temporarily if new release needs to be made before rpm5
+# hits main/release...
+%patch11 -p1 -b .rpm5~
 
 %build
 NOCONFIGURE=yes gnome-autogen.sh
