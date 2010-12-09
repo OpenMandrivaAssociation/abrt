@@ -5,7 +5,7 @@
 Summary: Automatic bug detection and reporting tool
 Name: abrt
 Version: 1.1.14
-Release: %mkrel 2
+Release: %mkrel 3
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
@@ -239,7 +239,7 @@ Virtual package to make easy default installation on desktop environments.
 %patch10 -p0 -b .link
 # just back out patch temporarily if new release needs to be made before rpm5
 # hits main/release...
-%patch11 -p1 -b .rpm5~
+#%patch11 -p1 -b .rpm5~
 
 %build
 NOCONFIGURE=yes gnome-autogen.sh
