@@ -237,7 +237,7 @@ Virtual package to make easy default installation on desktop environments.
 %patch7 -p0 -b .nspluginwrapper
 %patch8 -p1 -b .nonutf8-locale
 %patch10 -p0 -b .link
-if [ `pkg-config --modversion rpm|cut -d\. -f1` == 4 ]; then
+if [ `pkg-config --modversion rpm|cut -d\. -f1` == 5 ]; then
 %patch11 -p1 -b .rpm5~
 fi
 
