@@ -5,7 +5,7 @@
 Summary: Automatic bug detection and reporting tool
 Name: abrt
 Version: 1.1.14
-Release: %mkrel 5
+Release: %mkrel 6
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
@@ -237,6 +237,11 @@ Virtual package to make easy default installation on desktop environments.
 %patch7 -p0 -b .nspluginwrapper
 %patch8 -p1 -b .nonutf8-locale
 %patch10 -p0 -b .link
+# If buildsystem still fucks up and removes package from main/release, then
+# just disable linking against rpm completely for now by adding a
+# buildconflicts on rpm-devel or something. This crap has blocked and had main/testing
+# broken for way too long now preventing any progress and broken upgrades
+# completely for any users using it...
 if [ `pkg-config --modversion rpm|cut -d\. -f1` == 5 ]; then
 %patch11 -p1 -b .rpm5~
 fi
