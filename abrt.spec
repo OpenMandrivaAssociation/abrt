@@ -5,7 +5,7 @@
 Summary: Automatic bug detection and reporting tool
 Name: abrt
 Version: 1.1.14
-Release: %mkrel 6
+Release: %mkrel 7
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
@@ -34,6 +34,8 @@ Patch8: abrt-1.1.1-nonutf8-locale.patch
 Patch10: abrt-1.1.14-link.patch
 # (proyvind): port to rpm5 api
 Patch11: abrt-1.1.14-rpm5.patch
+# (eugeni): disable kernel oops cron plugin by default (mdv #61986)
+Patch12: abrt-1.1.14-disable_oops_scanner.patch
 BuildRequires: dbus-devel
 BuildRequires: gtk2-devel
 BuildRequires: curl-devel
@@ -245,6 +247,7 @@ Virtual package to make easy default installation on desktop environments.
 if [ `pkg-config --modversion rpm|cut -d\. -f1` == 5 ]; then
 %patch11 -p1 -b .rpm5~
 fi
+%patch12 -p1 -b .disable_oops_scanner
 
 %build
 NOCONFIGURE=yes gnome-autogen.sh
@@ -328,6 +331,7 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/SQLite3.conf
 %{_libdir}/%{name}/libSQLite3.so*
 %{_mandir}/man7/%{name}-SQLite3.7.*
+/lib/systemd/system/abrtd.service
 
 %files -n %{lib_name}
 %defattr(-,root,root,-)
