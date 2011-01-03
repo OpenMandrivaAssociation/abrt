@@ -1,3 +1,5 @@
+%define with_systemd 1
+
 %define lib_major 0
 %define lib_name %mklibname %{name} %{lib_major}
 %define lib_name_devel %mklibname %{name} -d
@@ -54,6 +56,9 @@ BuildRequires: libzip-devel, libtar-devel, bzip2-devel, zlib-devel
 BuildRequires: intltool
 BuildRequires: gnome-common
 BuildRequires: bison
+%if %{?with_systemd}
+Requires: systemd-units
+%endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: %{lib_name} >= %{version}-%{release}
 Requires(pre): rpm-helper
@@ -297,18 +302,40 @@ rm -rf %{buildroot}
 
 %post
 %_post_service %{name}d
+%if %{?with_systemd}
+# Enable (but don't start) the units by default
+  /bin/systemctl enable %{name}d.service >/dev/null 2>&1 || :
+%endif
+
 
 %preun
 %_preun_service %{name}d
+%if %{?with_systemd}
+if [ "$1" -eq "0" ] ; then
+  /bin/systemctl stop %{name}d.service >/dev/null 2>&1 || :
+  /bin/systemctl disable %{name}d.service >/dev/null 2>&1 || :
+fi
+%endif
+
 
 %postun
 %_postun_userdel %{name}
 %_postun_groupdel %{name} %{name}
+%if %{?with_systemd}
+if [ $1 -ge 1 ] ; then
+# On upgrade, reload init system configuration if we changed unit files
+  /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+fi
+%endif
 
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
 %doc README COPYING
+#systemd
+%if %{?with_systemd}
+/lib/systemd/system/%{name}d.service
+%endif
 %{_sbindir}/%{name}d
 %{_bindir}/%{name}-debuginfo-install
 %{_bindir}/%{name}-backtrace
