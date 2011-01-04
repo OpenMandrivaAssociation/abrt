@@ -58,6 +58,7 @@ BuildRequires: gnome-common
 BuildRequires: bison
 %if %{?with_systemd}
 Requires: systemd-units
+BuildRequires: systemd-units
 %endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: %{lib_name} >= %{version}-%{release}
