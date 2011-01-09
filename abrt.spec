@@ -7,7 +7,7 @@
 Summary: Automatic bug detection and reporting tool
 Name: abrt
 Version: 1.1.14
-Release: %mkrel 7
+Release: %mkrel 8
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
@@ -41,7 +41,7 @@ Patch12: abrt-1.1.14-disable_oops_scanner.patch
 BuildRequires: dbus-devel
 BuildRequires: gtk2-devel
 BuildRequires: curl-devel
-BuildRequires: rpm-devel >= 4.6
+BuildRequires: rpm-devel >= 1:5.3
 BuildRequires: sqlite-devel > 3.0
 BuildRequires: desktop-file-utils
 #BuildRequires: nss-devel
@@ -245,14 +245,7 @@ Virtual package to make easy default installation on desktop environments.
 %patch7 -p0 -b .nspluginwrapper
 %patch8 -p1 -b .nonutf8-locale
 %patch10 -p0 -b .link
-# If buildsystem still fucks up and removes package from main/release, then
-# just disable linking against rpm completely for now by adding a
-# buildconflicts on rpm-devel or something. This crap has blocked and had main/testing
-# broken for way too long now preventing any progress and broken upgrades
-# completely for any users using it...
-if [ `pkg-config --modversion rpm|cut -d\. -f1` == 5 ]; then
 %patch11 -p1 -b .rpm5~
-fi
 %patch12 -p1 -b .disable_oops_scanner
 
 %build
