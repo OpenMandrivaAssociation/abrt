@@ -7,7 +7,7 @@
 Summary: Automatic bug detection and reporting tool
 Name: abrt
 Version: 1.1.14
-Release: %mkrel 8
+Release: %mkrel 9
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
@@ -57,7 +57,6 @@ BuildRequires: intltool
 BuildRequires: gnome-common
 BuildRequires: bison
 %if %{?with_systemd}
-Requires: systemd-units
 BuildRequires: systemd-units
 %endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
