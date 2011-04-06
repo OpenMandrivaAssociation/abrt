@@ -38,7 +38,7 @@ Patch10: abrt-1.1.14-link.patch
 Patch11: abrt-1.1.14-rpm5.patch
 # (eugeni): disable kernel oops cron plugin by default (mdv #61986)
 Patch12: abrt-1.1.14-disable_oops_scanner.patch
-BuildRequires: dbus-devel
+BuildRequires: dbus-glib-devel
 BuildRequires: gtk2-devel
 BuildRequires: curl-devel
 BuildRequires: rpm-devel >= 1:5.3
