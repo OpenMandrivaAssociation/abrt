@@ -7,7 +7,7 @@
 Summary: Automatic bug detection and reporting tool
 Name: abrt
 Version: 1.1.14
-Release: %mkrel 9
+Release: %mkrel 10
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
@@ -38,6 +38,7 @@ Patch10: abrt-1.1.14-link.patch
 Patch11: abrt-1.1.14-rpm5.patch
 # (eugeni): disable kernel oops cron plugin by default (mdv #61986)
 Patch12: abrt-1.1.14-disable_oops_scanner.patch
+Patch13: abrt-1.1.14-libnotify0.7.patch
 BuildRequires: dbus-glib-devel
 BuildRequires: gtk2-devel
 BuildRequires: curl-devel
@@ -246,6 +247,7 @@ Virtual package to make easy default installation on desktop environments.
 %patch10 -p0 -b .link
 %patch11 -p1 -b .rpm5~
 %patch12 -p1 -b .disable_oops_scanner
+%patch13 -p0 -b .libnotify
 
 %build
 NOCONFIGURE=yes gnome-autogen.sh
