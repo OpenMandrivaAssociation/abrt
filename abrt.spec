@@ -7,7 +7,7 @@
 Summary: Automatic bug detection and reporting tool
 Name: abrt
 Version: 1.1.14
-Release: %mkrel 10
+Release: 11
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
@@ -292,7 +292,7 @@ rm -f %{buildroot}%{_sysconfdir}/%{name}/plugins/RHTSupport.conf
 rm -rf %{buildroot}
 
 %pre
-%_pre_useradd %{name} %{_sysconfdir}/%{name} /bin/nologin
+%_pre_useradd %{name} %{_sysconfdir}/%{name} /sbin/nologin
 %_pre_groupadd %{name} %{name}
 
 %post
