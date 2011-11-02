@@ -7,7 +7,7 @@
 Summary: Automatic bug detection and reporting tool
 Name: abrt
 Version: 1.1.14
-Release: 11
+Release: 12
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
