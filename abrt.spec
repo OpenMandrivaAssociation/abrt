@@ -2,7 +2,11 @@
 
 %define lib_major 0
 %define lib_name %mklibname %{name} %{lib_major}
+%define libreport %mklibname report %{lib_major}
+%define libreportgtk %mklibname report-gtk %{lib_major}
+
 %define lib_name_devel %mklibname %{name} -d
+%define lib_report_devel %mklibname report -d
 
 Summary: Automatic bug detection and reporting tool
 Name: abrt
@@ -16,6 +20,8 @@ Source1: abrt.init
 Source2: 00abrt.sh
 Source3: 00abrt.csh
 Source4: abrt-debuginfo-install
+Source5: abrt-ccpp.init
+Source6: abrt-oops.init
 # (fc) 1.0.8-1mdv fix format security error
 # (misc) sent upstream https://fedorahosted.org/abrt/attachment/ticket/120
 Patch0: abrt-2.0.2-format_security.patch
@@ -63,6 +69,9 @@ Requires(post): rpm-helper
 Requires(preun): rpm-helper
 Requires(postun): rpm-helper
 Obsoletes: plugin-catcut < 1.1.13
+%rename abrt-plugin-runapp
+%rename abrt-plugin-filetransfer
+%rename abrt-plugin-sosreport
 
 %description
 %{name} is a tool to help users to detect defects in applications and
@@ -137,23 +146,6 @@ Requires: mailx
 The simple reporter plugin which sends a report via mailx to a specified
 email address.
 
-%package plugin-runapp
-Summary: %{name}'s runapp plugin
-Group: System/Libraries
-Requires: %{name} = %{version}-%{release}
-
-%description plugin-runapp
-Plugin to run external programs.
-
-%package plugin-sosreport
-Summary: %{name}'s sosreport plugin
-Group: System/Libraries
-Requires: sos
-Requires: %{name} = %{version}-%{release}
-
-%description plugin-sosreport
-Plugin to include an sosreport in an abrt report.
-
 %package plugin-bugzilla
 Summary: %{name}'s bugzilla plugin
 Group: System/Libraries
@@ -180,14 +172,6 @@ Provides: plugin-ticketuploader = %{version}-%{release}
 %description plugin-reportuploader
 Plugin to report bugs into anonymous FTP site associated with ticketing system.
 
-%package plugin-filetransfer
-Summary: %{name}'s File Transfer plugin
-Group: System/Libraries
-Requires: %{name} = %{version}-%{release}
-
-%description plugin-filetransfer
-Plugin to uploading files to a server.
-
 %package addon-python
 Summary: %{name}'s addon for catching and analyzing Python exceptions
 Group: System/Libraries
@@ -203,7 +187,7 @@ Group: Graphical desktop/Other
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-addon-kerneloops
 Requires: %{name}-addon-ccpp, %{name}-addon-python
-Requires: %{name}-plugin-bugzilla, %{name}-plugin-logger, %{name}-plugin-runapp
+Requires: %{name}-plugin-bugzilla, %{name}-plugin-logger
 
 %description cli
 This package contains simple command line client for controlling abrt 
@@ -223,12 +207,55 @@ Requires: %{name}-addon-ccpp, %{name}-addon-python
 # Default config of addon-ccpp requires gdb
 Requires: gdb >= 7.0-3
 Requires: %{name}-gui
-Requires: %{name}-plugin-logger, %{name}-plugin-bugzilla, %{name}-plugin-runapp
+Requires: %{name}-plugin-logger, %{name}-plugin-bugzilla
 #Obsoletes: bug-buddy
 #Provides: bug-buddy
 
 %description desktop
 Virtual package to make easy default installation on desktop environments.
+
+%package -n %{libreport}
+Summary: Libraries for reporting crashes to different targets
+Group:   System/Libraries
+
+%description -n %{libreport}
+Libraries providing API for reporting different problems in applications
+to different bug targets like bugzilla, ftp, trac, etc...
+
+%package -n %{lib_report_devel}
+Summary: Development libraries and headers for libreport
+Group:   System/Libraries
+
+%description -n %lib_report_devel
+Development libraries and headers for libreport.
+
+%package -n python-libreport
+Summary: Python bindings for report-libs.
+Group: System/Libraries
+
+%description -n python-libreport
+Python bindings for report-libs.
+
+%package -n %{libreportgtk}
+Summary: GTK frontend for libreport
+Group:   System/Libraries
+
+%description -n %{libreportgtk}
+Applications for reporting bugs using libreport backend.
+
+%package retrace-server
+Summary: %{name}'s retrace server using HTTP protocol
+Group:   Graphical desktop/Other
+Requires: abrt-addon-ccpp
+Requires: gdb >= 7.0-3
+Requires: apache-mod_wsgi, apache-mod_ssl, python-webob
+Requires: mock, xz, elfutils, createrepo
+Requires(preun): /sbin/install-info
+Requires(post): /sbin/install-info
+
+%description retrace-server
+The retrace server provides a coredump analysis and backtrace
+generation service over a network using HTTP protocol.
 
 %prep
 %setup -q
@@ -257,22 +284,33 @@ rm -rf %{buildroot}
 #rm -rf %{buildroot}/%{_libdir}/%{name}/lib*.la
 # remove all .la and .a files
 find %{buildroot} -name '*.la' -or -name '*.a' | xargs rm -f
-mkdir -p %{buildroot}/%{_initrddir}
-install -m 755 %SOURCE1 %{buildroot}/%{_initrddir}/abrtd
+install -m755 %{SOURCE1} -D %{buildroot}/%{_initrddir}/abrtd
+install -m755 %{SOURCE5} %{buildroot}/%{_initrddir}/abrt-ccpp
+install -m755 %{SOURCE6} %{buildroot}/%{_initrddir}/abrt-oops
+
 mkdir -p %{buildroot}/var/cache/%{name}
 mkdir -p %{buildroot}/var/cache/%{name}-di
 mkdir -p %{buildroot}/var/run/%{name}
+mkdir -p %{buildroot}/var/spool/%{name}
+mkdir -p %{buildroot}/var/spool/%{name}-retrace
+mkdir -p %{buildroot}/var/cache/%{name}-retrace
+mkdir -p %{buildroot}/var/log/%{name}-retrace
+mkdir -p %{buildroot}/var/spool/%{name}-upload
+
+sed -i 's!@libexec@!%_libdir!' %{buildroot}/%{_initrddir}/%{name}-ccpp
+
 # remove fedora gpg key
 rm -f %{buildroot}%{_sysconfdir}/abrt/gpg_keys
 touch %{buildroot}%{_sysconfdir}/abrt/gpg_keys
 
 # install ulimit disabler
 mkdir -p %{buildroot}%{_sysconfdir}/profile.d/
-install -m755 %SOURCE2 %SOURCE3 %{buildroot}%{_sysconfdir}/profile.d/
+install -m755 %{SOURCE2} %{SOURCE3} %{buildroot}%{_sysconfdir}/profile.d/
+install -m755 src/daemon/abrtd.service -D %{buildroot}/lib/systemd/system/%{name}d.service
 
 desktop-file-install \
         --dir %{buildroot}%{_sysconfdir}/xdg/autostart \
-        src/Applet/%{name}-applet.desktop
+        src/applet/%{name}-applet.desktop
 
 # replace with our own version
 cat %{SOURCE4} > %{buildroot}/usr/bin/%{name}-debuginfo-install
@@ -280,7 +318,12 @@ cat %{SOURCE4} > %{buildroot}/usr/bin/%{name}-debuginfo-install
 #remove RH specific plugins
 rm -f %{buildroot}%{_libdir}/%{name}/{RHTSupport.glade,libRHTSupport.so}
 rm -f %{buildroot}%{_sysconfdir}/%{name}/plugins/RHTSupport.conf
+rm -f %{buildroot}%{_sysconfdir}/%{name}/events.d/rhtsupport_events.conf
+rm -f %{buildroot}%{_sysconfdir}/%{name}/events/report_RHTSupport.xml
+rm -f %{buildroot}%{_bindir}/%{name}-action-rhtsupport
 
+touch %{buildroot}%{_localstatedir}/run/%{name}/abrt.socket
+touch %{buildroot}%{_localstatedir}/run/%{name}d.pid
 
 %clean
 rm -rf %{buildroot}
@@ -317,6 +360,14 @@ if [ $1 -ge 1 ] ; then
 fi
 %endif
 
+%post retrace-server
+/sbin/install-info %{_infodir}/abrt-retrace-server %{_infodir}/dir 2> /dev/null || :
+/usr/sbin/usermod -G mock apache 2> /dev/null || :
+
+%preun retrace-server
+if [ "$1" = 0 ]; then
+  /sbin/install-info --delete %{_infodir}/abrt-retrace-server %{_infodir}/dir 2> /dev/null || :
+fi
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
@@ -326,38 +377,48 @@ fi
 /lib/systemd/system/%{name}d.service
 %endif
 %{_sbindir}/%{name}d
+%{_sbindir}/%{name}-server
 %{_bindir}/%{name}-debuginfo-install
-%{_bindir}/%{name}-backtrace
+%{_bindir}/%{name}-action-analyze-core.py
+%{_bindir}/%{name}-handle-upload
+%{_bindir}/%{name}-handle-crashdump
+%{_bindir}/%{name}-action-save-package-data
+%{_bindir}/%{name}-retrace-client
+%{_bindir}/bug-reporting-wizard
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %config(noreplace) %{_sysconfdir}/%{name}/gpg_keys
 %config(noreplace) %{_sysconfdir}/dbus-1/system.d/dbus-%{name}.conf
+%config(noreplace) %{_sysconfdir}/%{name}/%{name}_event.conf
+%ghost %attr(0666, -, -) %{_localstatedir}/run/%{name}/abrt.socket
+%ghost %attr(0644, -, -) %{_localstatedir}/run/%{name}d.pid
 %{_initrddir}/%{name}d
-%dir %attr(0755, %{name}, %{name}) %{_localstatedir}/cache/%{name}
+#%dir %attr(0755, %{name}, %{name}) %{_localstatedir}/cache/%{name}
 %dir /var/run/%{name}
 %dir %{_sysconfdir}/%{name}
 %dir %{_sysconfdir}/%{name}/plugins
-%dir %{_libdir}/%{name}
-%{_mandir}/man1/%{name}-backtrace.1.*
-%{_mandir}/man8/abrtd.8.*
+%dir %{_sysconfdir}/%{name}/events.d
+%dir %{_sysconfdir}/%{name}/events
+%{_mandir}/man8/%{name}d.8.*
 %{_mandir}/man5/%{name}.conf.5.*
-#%{_mandir}/man5/pyhook.conf.5.*
+%{_mandir}/man5/%{name}_event.conf.5.*
 %{_mandir}/man7/%{name}-plugins.7.*
-%{_datadir}/polkit-1/actions/org.fedoraproject.abrt.policy
-%{_datadir}/dbus-1/system-services/com.redhat.abrt.service
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/SQLite3.conf
-%{_libdir}/%{name}/libSQLite3.so*
-%{_mandir}/man7/%{name}-SQLite3.7.*
-/lib/systemd/system/abrtd.service
+%{_datadir}/dbus-1/system-services/com.redhat.%{name}.service
 
 %files -n %{lib_name}
 %defattr(-,root,root,-)
-%{_libdir}/lib*.so.*
+%{_libdir}/libabrt*.so.*
+%{_libdir}/libbtparser.so.*
 
 %files -n %{lib_name_devel}
 %defattr(-,root,root,-)
-%{_libdir}/lib*.so
-%{_includedir}/%{name}/*.h
+%{_includedir}/abrt/*
+%{_includedir}/btparser/*
+%{_libdir}/libabrt*.so
+%{_libdir}/libbtparser.so
+#FIXME: this should go to libreportgtk-devel package
+%{_libdir}/libreportgtk.so
 %{_libdir}/pkgconfig/%{name}.pc
+%{_libdir}/pkgconfig/btparser.pc
 
 %files gui
 %defattr(-,root,root,-)
@@ -371,53 +432,60 @@ fi
 %files addon-ccpp
 %defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/CCpp.conf
-%dir %{_localstatedir}/cache/%{name}-di
-%{_libdir}/%{name}/libCCpp.so*
-%{_libexecdir}/abrt-hook-ccpp
+%dir %attr(0775, abrt, abrt) %{_localstatedir}/cache/abrt-di
+%{_initrddir}/abrt-ccpp
+%{_libdir}/abrt-hook-ccpp
 %{_sysconfdir}/profile.d/00abrt.*
+%{_bindir}/abrt-action-analyze-c
+%{_bindir}/abrt-action-trim-files
+%attr(2755, abrt, abrt) %{_bindir}/abrt-action-install-debuginfo
+%{_bindir}/abrt-action-install-debuginfo.py*
+%{_bindir}/abrt-action-generate-backtrace
+%{_bindir}/abrt-action-analyze-backtrace
+%{_bindir}/abrt-action-list-dsos.py*
+%{_sysconfdir}/%{name}/events.d/ccpp_events.conf
+%{_sysconfdir}/%{name}/events/analyze_LocalGDB.xml
+%{_sysconfdir}/%{name}/events/reanalyze_LocalGDB.xml
+%{_sysconfdir}/%{name}/events/analyze_RetraceServer.xml
+%{_sysconfdir}/%{name}/events/reanalyze_RetraceServer.xml
+%{_mandir}/man*/abrt-action-trim-files.*
+%{_mandir}/man*/abrt-action-generate-backtrace.*
+%{_mandir}/man*/abrt-action-analyze-backtrace.*
 
 %files addon-kerneloops
 %defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Kerneloops.conf
-%{_bindir}/dumpoops
-%{_libdir}/%{name}/libKerneloops.so*
-%{_libdir}/%{name}/libKerneloopsScanner.so*
-%{_mandir}/man7/%{name}-KerneloopsScanner.7.*
-%{_libdir}/%{name}/libKerneloopsReporter.so*
-%{_libdir}/%{name}/KerneloopsReporter.glade
-%{_mandir}/man7/%{name}-KerneloopsReporter.7.*
+%config(noreplace) %{_sysconfdir}/%{name}/events.d/koops_events.conf
+%{_sysconfdir}/%{name}/events/report_Kerneloops.xml
+%{_initrddir}/abrt-oops
+%{_mandir}/man7/abrt-KerneloopsReporter.7.*
+%{_bindir}/abrt-dump-oops
+%{_bindir}/abrt-action-analyze-oops
+%{_bindir}/abrt-action-kerneloops
 
 %files plugin-logger
 %defattr(-,root,root,-)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/Logger.conf
-%{_libdir}/%{name}/libLogger.so*
-%{_libdir}/%{name}/Logger.glade
+%{_sysconfdir}/%{name}/events/report_Logger.conf
+%{_bindir}/abrt-action-print
 %{_mandir}/man7/%{name}-Logger.7.*
+%{_mandir}/man*/%{name}-action-print.*
 
 %files plugin-mailx
 %defattr(-,root,root,-)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/Mailx.conf
-%{_libdir}/%{name}/libMailx.so*
-%{_libdir}/%{name}/Mailx.glade
+%{_sysconfdir}/%{name}/events/report_Mailx.xml
+%{_sysconfdir}/%{name}/events.d/mailx_events.conf
+%{_bindir}/abrt-action-mailx
 %{_mandir}/man7/%{name}-Mailx.7.*
-
-%files plugin-runapp
-%defattr(-,root,root,-)
-%{_libdir}/%{name}/libRunApp.so*
-%{_mandir}/man7/%{name}-RunApp.7.*
-
-%files plugin-sosreport
-%defattr(-,root,root,-)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/SOSreport.conf
-%{_libdir}/%{name}/libSOSreport.so*
-
+%{_mandir}/man*/%{name}-action-mailx.*
 
 %files plugin-bugzilla
 %defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Bugzilla.conf
-%{_libdir}/%{name}/libBugzilla.so*
-%{_libdir}/%{name}/Bugzilla.glade
-%{_mandir}/man7/%{name}-Bugzilla.7.*
+%{_sysconfdir}/%{name}/events/report_Bugzilla.xml
+%config(noreplace) %{_sysconfdir}/%{name}/events/report_Bugzilla.conf
+# FIXME: remove with the old gui
+%{_mandir}/man7/abrt-Bugzilla.7.*
+%{_bindir}/abrt-action-bugzilla
 
 ##%files plugin-catcut
 #%defattr(-,root,root,-)
@@ -428,26 +496,16 @@ fi
 
 %files plugin-reportuploader
 %defattr(-,root,root,-)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/ReportUploader.conf
-%{_bindir}/%{name}-handle-upload
-%{_libdir}/%{name}/libReportUploader.so*
-%{_libdir}/%{name}/ReportUploader.glade
-%{_mandir}/man7/%{name}-ReportUploader.7.*
-
-%files plugin-filetransfer
-%defattr(-,root,root,-)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/FileTransfer.conf
-%{_libdir}/%{name}/libFileTransfer.so*
-%{_mandir}/man7/%{name}-FileTransfer.7.*
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/Upload.conf
+%{_mandir}/man7/abrt-Upload.7.*
+%{_bindir}/abrt-action-upload
 
 %files addon-python
 %defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Python.conf
-#%attr(4755, abrt, abrt) %{_libexecdir}/abrt-hook-python
-%{_libdir}/%{name}/libPython.so*
-%{py_puresitedir}/*.py*
+%{_bindir}/abrt-action-analyze-python
+%{py_puresitedir}/abrt*.py*
 %{py_puresitedir}/*.pth
-
 
 %files cli
 %defattr(-,root,root,-)
@@ -458,3 +516,38 @@ fi
 %files desktop
 %defattr(-,root,root,-)
 
+%files -n %{libreport}
+%defattr(-,root,root,-)
+%{_libdir}/libreport.so.%{lib_major}*
+
+%files -n %{lib_report_devel}
+%defattr(-,root,root,-)
+%{_includedir}/report/*
+%{_libdir}/libreport.so
+
+%files -n %{libreportgtk}
+%defattr(-,root,root,-)
+%{_libdir}/libreportgtk.so.%{lib_major}*
+
+%files -n python-libreport
+%defattr(-,root,root,-)
+%dir %{python_sitearch}/report
+%{python_sitearch}/report/*
+
+%files retrace-server
+%defattr(-,root,root,-)
+%config(noreplace) %{_sysconfdir}/%{name}/retrace.conf
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/retrace_httpd.conf
+%config(noreplace) %{_sysconfdir}/yum.repos.d/retrace.repo
+%dir %attr(0775, apache, abrt) %{_localstatedir}/spool/abrt-retrace
+%dir %attr(0755, abrt, abrt) %{_localstatedir}/cache/abrt-retrace
+%dir %attr(0755, abrt, abrt) %{_localstatedir}/log/abrt-retrace
+%{_bindir}/abrt-retrace-worker
+%{_bindir}/abrt-retrace-cleanup
+%{_bindir}/abrt-retrace-reposync
+%{_bindir}/coredump2packages
+%{py_puresitedir}/retrace.py*
+%{_datadir}/abrt-retrace/*.py*
+%{_datadir}/abrt-retrace/*.wsgi
+%{_datadir}/abrt-retrace/plugins/*.py*
+%{_infodir}/abrt-retrace-server*
