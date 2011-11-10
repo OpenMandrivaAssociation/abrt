@@ -6,8 +6,8 @@
 
 Summary: Automatic bug detection and reporting tool
 Name: abrt
-Version: 1.1.14
-Release: 12
+Version: 2.0.2
+Release: 1
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
@@ -18,9 +18,7 @@ Source3: 00abrt.csh
 Source4: abrt-debuginfo-install
 # (fc) 1.0.8-1mdv fix format security error
 # (misc) sent upstream https://fedorahosted.org/abrt/attachment/ticket/120
-Patch0: abrt-1.1.14-format_security.patch
-# (fc) 1.0.8-1mdv fix build with rpm 4.6
-Patch1: abrt-1.0.8-rpm46.patch
+Patch0: abrt-2.0.2-format_security.patch
 # (fc) 1.0.8-1mdv disable package signature check
 Patch2: abrt_disable_gpgcheck.diff
 # (fc) 1.0.8-1mdv use mdv bugzilla
@@ -30,15 +28,13 @@ Patch5: abrt-1.1.14-debug.patch
 # (fc) 1.1.0-1mdv parse mandriva-release
 Patch6: abrt-1.1.13-mandriva-release.patch
 # (fc) 1.1.0-1mdv disable nspluginwrapper-i386 (Mdv bug #59237)
-Patch7: abrt-1.1.13-nspluginwrapper.patch
+Patch7: abrt-2.0.2-nspluginwrapper.patch
 # (fc) 1.1.0-1mdv fix for non UTF-8 locale
-Patch8: abrt-1.1.1-nonutf8-locale.patch
-Patch10: abrt-1.1.14-link.patch
+Patch8: abrt-2.0.2-nonutf8-locale.patch
+Patch10: abrt-2.0.2-link.patch
 # (proyvind): port to rpm5 api
-Patch11: abrt-1.1.14-rpm5.patch
-# (eugeni): disable kernel oops cron plugin by default (mdv #61986)
-Patch12: abrt-1.1.14-disable_oops_scanner.patch
-Patch13: abrt-1.1.14-libnotify0.7.patch
+Patch11: abrt-2.0.2-rpm5.patch
+Patch14: abrt-2.0.2-add-missing-locale-header.patch
 BuildRequires: dbus-glib-devel
 BuildRequires: gtk2-devel
 BuildRequires: curl-devel
@@ -237,20 +233,18 @@ Virtual package to make easy default installation on desktop environments.
 %prep
 %setup -q
 %patch0 -p1 -b .format_security
-%patch1 -p1 -b .rpm46
 %patch2 -p1 -b .disable_signature_check
-%patch3 -p0 -b .mdvbugzilla
-%patch5 -p0 -b .debug
-%patch6 -p0 -b .mandriva-release
-%patch7 -p0 -b .nspluginwrapper
+#patch3 -p0 -b .mdvbugzilla
+#patch6 -p0 -b .mandriva-release
+%patch7 -p1 -b .nspluginwrapper
 %patch8 -p1 -b .nonutf8-locale
-%patch10 -p0 -b .link
+%patch10 -p1 -b .link~
 %patch11 -p1 -b .rpm5~
-%patch12 -p1 -b .disable_oops_scanner
-%patch13 -p0 -b .libnotify
+%patch14 -p1 -b .locale~
 
 %build
 NOCONFIGURE=yes gnome-autogen.sh
+CFLAGS="-Wno-error=deprecated-declarations" \
 %configure2_5x --disable-rpath
 %make
 
