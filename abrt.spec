@@ -59,6 +59,9 @@ BuildRequires: libzip-devel, libtar-devel, bzip2-devel, zlib-devel
 BuildRequires: intltool
 BuildRequires: gnome-common
 BuildRequires: bison
+BuildRequires: asciidoc
+BuildRequires: xmlto
+BuildRequires: libgnome-keyring-devel
 %if %{?with_systemd}
 BuildRequires: systemd-units
 %endif
