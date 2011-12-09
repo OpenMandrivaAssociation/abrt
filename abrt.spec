@@ -11,7 +11,7 @@
 Summary: Automatic bug detection and reporting tool
 Name: abrt
 Version: 2.0.2
-Release: 1
+Release: 2
 License: GPLv2+
 Group: System/Base
 URL: https://fedorahosted.org/abrt/
@@ -65,7 +65,6 @@ BuildRequires: libgnome-keyring-devel
 %if %{?with_systemd}
 BuildRequires: systemd-units
 %endif
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: %{lib_name} >= %{version}-%{release}
 Requires(pre): rpm-helper
 Requires(post): rpm-helper
@@ -91,7 +90,7 @@ Libraries for %{name}.
 %package -n %{lib_name_devel}
 Summary: Development libraries for %{name}
 Group: Development/C
-Requires: %{lib_name} = %{version}-%{release}
+Requires: %{lib_name} >= %{version}-%{release}
 Requires: abrt = %{version}-%{release}
 Obsoletes: %{_lib}abrt0-devel
 
@@ -101,7 +100,7 @@ Development libraries and headers for %{name}.
 %package gui
 Summary: %{name}'s gui
 Group: Graphical desktop/Other
-Requires: %{name} = %{version}-%{release}
+Requires: %{name} >= %{version}-%{release}
 Requires: dbus-python, pygtk2.0, pygtk2.0-libglade
 Requires: python-gobject
 Requires: gnome-python-desktop
@@ -113,7 +112,7 @@ GTK+ wizard for convenient bug reporting.
 Summary: %{name}'s C/C++ addon
 Group: System/Libraries
 Requires: elfutils
-Requires: %{name} = %{version}-%{release}
+Requires: %{name} >= %{version}-%{release}
 
 %description addon-ccpp
 This package contains hook for C/C++ crashed programs and %{name}'s C/C++
@@ -123,7 +122,7 @@ analyzer plugin.
 Summary: %{name}'s kerneloops addon
 Group: System/Libraries
 Requires: curl
-Requires: %{name} = %{version}-%{release}
+Requires: %{name} >= %{version}-%{release}
 #Obsoletes: kerneloops
 
 %description addon-kerneloops
@@ -134,7 +133,7 @@ usually to kerneloops.org.
 %package plugin-logger
 Summary: %{name}'s logger reporter plugin
 Group: System/Libraries
-Requires: %{name} = %{version}-%{release}
+Requires: %{name} >= %{version}-%{release}
 
 %description plugin-logger
 The simple reporter plugin which writes a report to a specified file.
@@ -142,7 +141,7 @@ The simple reporter plugin which writes a report to a specified file.
 %package plugin-mailx
 Summary: %{name}'s mailx reporter plugin
 Group: System/Libraries
-Requires: %{name} = %{version}-%{release}
+Requires: %{name} >= %{version}-%{release}
 Requires: mailx
 
 %description plugin-mailx
@@ -152,7 +151,7 @@ email address.
 %package plugin-bugzilla
 Summary: %{name}'s bugzilla plugin
 Group: System/Libraries
-Requires: %{name} = %{version}-%{release}
+Requires: %{name} >= %{version}-%{release}
 
 %description plugin-bugzilla
 Plugin to report bugs into the bugzilla.
@@ -168,7 +167,7 @@ Plugin to report bugs into the bugzilla.
 %package plugin-reportuploader
 Summary: %{name}'s ticketuploader plugin
 Group: System/Libraries
-Requires: %{name} = %{version}-%{release}
+Requires: %{name} >= %{version}-%{release}
 Obsoletes: plugin-ticketuploader < 1.1.13
 Provides: plugin-ticketuploader = %{version}-%{release}
 
@@ -178,7 +177,7 @@ Plugin to report bugs into anonymous FTP site associated with ticketing system.
 %package addon-python
 Summary: %{name}'s addon for catching and analyzing Python exceptions
 Group: System/Libraries
-Requires: %{name} = %{version}-%{release}
+Requires: %{name} >= %{version}-%{release}
 
 %description addon-python
 This package contains python hook and python analyzer plugin for handling
@@ -187,7 +186,7 @@ uncaught exception in python programs.
 %package cli
 Summary: %{name}'s command line interface
 Group: Graphical desktop/Other
-Requires: %{name} = %{version}-%{release}
+Requires: %{name} >= %{version}-%{release}
 Requires: %{name}-addon-kerneloops
 Requires: %{name}-addon-ccpp, %{name}-addon-python
 Requires: %{name}-plugin-bugzilla, %{name}-plugin-logger
@@ -204,7 +203,7 @@ Group: Graphical desktop/Other
 # or if user just wants "typical desktop installation".
 # Installing abrt-desktop should result in the abrt which works without
 # any tweaking in abrt.conf (IOW: all plugins mentioned there must be installed)
-Requires: %{name} = %{version}-%{release}
+Requires: %{name} >= %{version}-%{release}
 Requires: %{name}-addon-kerneloops
 Requires: %{name}-addon-ccpp, %{name}-addon-python
 # Default config of addon-ccpp requires gdb
@@ -328,9 +327,6 @@ rm -f %{buildroot}%{_bindir}/%{name}-action-rhtsupport
 touch %{buildroot}%{_localstatedir}/run/%{name}/abrt.socket
 touch %{buildroot}%{_localstatedir}/run/%{name}d.pid
 
-%clean
-rm -rf %{buildroot}
-
 %pre
 %_pre_useradd %{name} %{_sysconfdir}/%{name} /sbin/nologin
 %_pre_groupadd %{name} %{name}
@@ -373,7 +369,6 @@ if [ "$1" = 0 ]; then
 fi
 
 %files -f %{name}.lang
-%defattr(-,root,root,-)
 %doc README COPYING
 #systemd
 %if %{?with_systemd}
@@ -408,12 +403,10 @@ fi
 %{_datadir}/dbus-1/system-services/com.redhat.%{name}.service
 
 %files -n %{lib_name}
-%defattr(-,root,root,-)
 %{_libdir}/libabrt*.so.*
 %{_libdir}/libbtparser.so.*
 
 %files -n %{lib_name_devel}
-%defattr(-,root,root,-)
 %{_includedir}/abrt/*
 %{_includedir}/btparser/*
 %{_libdir}/libabrt*.so
@@ -424,7 +417,6 @@ fi
 %{_libdir}/pkgconfig/btparser.pc
 
 %files gui
-%defattr(-,root,root,-)
 %{_bindir}/%{name}-gui
 %{_datadir}/%{name}
 %{_datadir}/applications/%{name}.desktop
@@ -433,7 +425,6 @@ fi
 %{_sysconfdir}/xdg/autostart/%{name}-applet.desktop
 
 %files addon-ccpp
-%defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/CCpp.conf
 %dir %attr(0775, abrt, abrt) %{_localstatedir}/cache/abrt-di
 %{_initrddir}/abrt-ccpp
@@ -456,7 +447,6 @@ fi
 %{_mandir}/man*/abrt-action-analyze-backtrace.*
 
 %files addon-kerneloops
-%defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Kerneloops.conf
 %config(noreplace) %{_sysconfdir}/%{name}/events.d/koops_events.conf
 %{_sysconfdir}/%{name}/events/report_Kerneloops.xml
@@ -467,14 +457,12 @@ fi
 %{_bindir}/abrt-action-kerneloops
 
 %files plugin-logger
-%defattr(-,root,root,-)
 %{_sysconfdir}/%{name}/events/report_Logger.conf
 %{_bindir}/abrt-action-print
 %{_mandir}/man7/%{name}-Logger.7.*
 %{_mandir}/man*/%{name}-action-print.*
 
 %files plugin-mailx
-%defattr(-,root,root,-)
 %{_sysconfdir}/%{name}/events/report_Mailx.xml
 %{_sysconfdir}/%{name}/events.d/mailx_events.conf
 %{_bindir}/abrt-action-mailx
@@ -482,7 +470,6 @@ fi
 %{_mandir}/man*/%{name}-action-mailx.*
 
 %files plugin-bugzilla
-%defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Bugzilla.conf
 %{_sysconfdir}/%{name}/events/report_Bugzilla.xml
 %config(noreplace) %{_sysconfdir}/%{name}/events/report_Bugzilla.conf
@@ -491,54 +478,44 @@ fi
 %{_bindir}/abrt-action-bugzilla
 
 ##%files plugin-catcut
-#%defattr(-,root,root,-)
 #%config(noreplace) %{_sysconfdir}/%{name}/plugins/Catcut.conf
 #%{_libdir}/%{name}/libCatcut.so*
 #%{_libdir}/%{name}/Catcut.GTKBuilder
 #%{_mandir}/man7/%{name}-Catcut.7.*
 
 %files plugin-reportuploader
-%defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Upload.conf
 %{_mandir}/man7/abrt-Upload.7.*
 %{_bindir}/abrt-action-upload
 
 %files addon-python
-%defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Python.conf
 %{_bindir}/abrt-action-analyze-python
 %{py_puresitedir}/abrt*.py*
 %{py_puresitedir}/*.pth
 
 %files cli
-%defattr(-,root,root,-)
 %{_bindir}/abrt-cli
 %{_mandir}/man1/abrt-cli.1.*
 %{_sysconfdir}/bash_completion.d/abrt-cli.bash
 
 %files desktop
-%defattr(-,root,root,-)
 
 %files -n %{libreport}
-%defattr(-,root,root,-)
 %{_libdir}/libreport.so.%{lib_major}*
 
 %files -n %{lib_report_devel}
-%defattr(-,root,root,-)
 %{_includedir}/report/*
 %{_libdir}/libreport.so
 
 %files -n %{libreportgtk}
-%defattr(-,root,root,-)
 %{_libdir}/libreportgtk.so.%{lib_major}*
 
 %files -n python-libreport
-%defattr(-,root,root,-)
 %dir %{python_sitearch}/report
 %{python_sitearch}/report/*
 
 %files retrace-server
-%defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/retrace.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/retrace_httpd.conf
 %config(noreplace) %{_sysconfdir}/yum.repos.d/retrace.repo
