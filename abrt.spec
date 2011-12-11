@@ -62,6 +62,7 @@ BuildRequires: bison
 BuildRequires: asciidoc
 BuildRequires: xmlto
 BuildRequires: docbook-dtd-xml
+BuildRequires: texlive
 BuildRequires: libgnome-keyring-devel
 %if %{?with_systemd}
 BuildRequires: systemd-units
