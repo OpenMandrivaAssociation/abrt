@@ -232,7 +232,7 @@ Group:   System/Libraries
 Development libraries and headers for libreport.
 
 %package -n python-libreport
-Summary: Python bindings for report-libs.
+Summary: Python bindings for report-libs
 Group: System/Libraries
 
 %description -n python-libreport
