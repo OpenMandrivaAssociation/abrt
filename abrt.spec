@@ -27,8 +27,10 @@ Patch2: abrt_disable_gpgcheck.diff
 #Patch5: abrt-1.1.14-debug.patch
 # (fc) disable nspluginwrapper-i386 (Mdv bug #59237)
 Patch7: abrt-2.0.2-nspluginwrapper.patch
-Patch8:	abrt-2.0.8-link-against-libreport.patch
-# Fedora patches
+Patch8: abrt-2.0.8-nonutf8-locale.patch
+Patch10: abrt-2.0.8-link-against-libreport.patch
+# (proyvind): port to rpm5 api
+Patch11: abrt-2.0.8-rpm5.patch
 BuildRequires: dbus-devel libdbus-glib-devel
 BuildRequires: gtk2-devel
 BuildRequires: curl-devel
