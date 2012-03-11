@@ -21,15 +21,12 @@ Source3: 00abrt.csh
 Source4: abrt-debuginfo-install
 Source5: abrt-ccpp.init
 Source6: abrt-oops.init
-Patch0: abrt-2.0.7-link.patch
 # (fc) disable package signature check
 Patch2: abrt_disable_gpgcheck.diff
 # (pt) generate stacktrace twice to get missing -debug packages
 #Patch5: abrt-1.1.14-debug.patch
 # (fc) disable nspluginwrapper-i386 (Mdv bug #59237)
 Patch7: abrt-2.0.2-nspluginwrapper.patch
-# (fc) fix for non UTF-8 locale
-Patch8: abrt-2.0.6-format-security.patch
 
 # Fedora patches
 BuildRequires: dbus-devel libdbus-glib-devel
