@@ -61,8 +61,8 @@ BuildRequires: gettext-devel
 BuildRequires: systemd-units
 %endif
 BuildRequires: pkgconfig(btparser)
-#BuildRequires: libreport-devel
-#BuildRequires: pkgconfig(libreport-gtk)
+BuildRequires: pkgconfig(libreport)
+BuildRequires: pkgconfig(libreport-gtk)
 Requires: %{lib_name} >= %{version}-%{release}
 Requires(pre): rpm-helper
 Requires(post): rpm-helper
