@@ -21,6 +21,7 @@ Source3: 00abrt.csh
 Source4: abrt-debuginfo-install
 Source5: abrt-ccpp.init
 Source6: abrt-oops.init
+Patch0: abrt-2.0.8-format_security.patch
 # (fc) disable package signature check
 Patch2: abrt_disable_gpgcheck.diff
 # (pt) generate stacktrace twice to get missing -debug packages
