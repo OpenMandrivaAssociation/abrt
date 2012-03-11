@@ -60,7 +60,7 @@ BuildRequires: gettext-devel
 %if %{?with_systemd}
 BuildRequires: systemd-units
 %endif
-BuildRequires: btparser-devel
+BuildRequires: pkgconfig(btparser)
 #BuildRequires: libreport-devel
 #BuildRequires: pkgconfig(libreport-gtk)
 Requires: %{lib_name} >= %{version}-%{release}
