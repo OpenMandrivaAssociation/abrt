@@ -123,6 +123,8 @@ fi
 %{_sbindir}/%{name}-server
 %{_sbindir}/abrt-dbus
 %{_bindir}/%{name}-debuginfo-install
+%{_bindir}/abrt-action-generate-core-backtrace
+%{_bindir}/abrt-dedup-client
 %{_bindir}/%{name}-handle-upload
 %{_bindir}/%{name}-action-save-package-data
 %{_bindir}/%{name}-retrace-client
@@ -143,10 +145,12 @@ fi
 %dir /var/run/%{name}
 %dir %{_sysconfdir}/%{name}
 %dir %{_sysconfdir}/%{name}/plugins
+%dir %{_datadir}/locale/fa/LC_MESSAGES
 %{_mandir}/man1/abrt-handle-upload.1.*
 %{_mandir}/man1/abrt-server.1.*
 %{_mandir}/man1/abrt-action-save-package-data.1.*
 %{_mandir}/man1/abrt-retrace-client.1.*
+%{_mandir}/man1/abrt-cli.1.*
 %{_mandir}/man8/abrtd.8.*
 %{_mandir}/man8/abrt-dbus.8.*
 %{_mandir}/man5/abrt.conf.5.*
@@ -515,6 +519,10 @@ sed -i 's!@libexec@!%_libdir!' %{buildroot}/%{_initrddir}/%{name}-ccpp
 # remove fedora gpg key
 rm -f %{buildroot}%{_sysconfdir}/abrt/gpg_keys
 touch %{buildroot}%{_sysconfdir}/abrt/gpg_keys
+
+touch %buildroot/var/run/abrt/abrt.socket
+touch %buildroot/var/run/abrtd.pid
+
 
 # install ulimit disabler
 mkdir -p %{buildroot}%{_sysconfdir}/profile.d/
