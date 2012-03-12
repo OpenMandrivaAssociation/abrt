@@ -49,7 +49,7 @@ BuildRequires: gettext
 BuildRequires: polkit-1-devel
 BuildRequires: libzip-devel, libtar-devel, bzip2-devel, zlib-devel
 BuildRequires: intltool
-BuildRequires: pkgconfig(btparser) = 0.16
+BuildRequires: btparser-devel = 0.16
 BuildRequires: pkgconfig(libreport) => 2.0.9
 BuildRequires: pkgconfig(libreport-gtk) => 2.0.9
 BuildRequires: gnome-common
