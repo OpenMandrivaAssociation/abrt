@@ -49,6 +49,7 @@ BuildRequires: gettext
 BuildRequires: polkit-1-devel
 BuildRequires: libzip-devel, libtar-devel, bzip2-devel, zlib-devel
 BuildRequires: intltool
+BuildRequires: pkgconfig(btparser) = 0.16
 BuildRequires: pkgconfig(libreport) => 2.0.9
 BuildRequires: pkgconfig(libreport-gtk) => 2.0.9
 BuildRequires: gnome-common
@@ -61,9 +62,6 @@ BuildRequires: gettext-devel
 %if %{?with_systemd}
 BuildRequires: systemd-units
 %endif
-BuildRequires: pkgconfig(btparser) => 0.16
-BuildRequires: pkgconfig(libreport) => 2.0.9
-BuildRequires: pkgconfig(libreport-gtk) => 2.0.9
 Requires: %{lib_name} >= %{version}-%{release}
 Requires(pre): rpm-helper
 Requires(post): rpm-helper
