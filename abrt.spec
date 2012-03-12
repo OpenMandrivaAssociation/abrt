@@ -75,6 +75,7 @@ Obsoletes: abrt-plugin-sqlite3 < 1.1.18
 Obsoletes: abrt-plugin-runapp < 1.1.18
 Obsoletes: abrt-plugin-filetransfer < 1.1.18
 Obsoletes: abrt-plugin-sosreport < 1.1.18
+BuildConflicts: %{mklibname abrt 0} %{mklibname abrt -d}
 
 %description
 %{name} is a tool to help users to detect defects in applications and
