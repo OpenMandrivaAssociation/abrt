@@ -32,11 +32,12 @@ Patch8: abrt-2.0.8-nonutf8-locale.patch
 Patch10: abrt-2.0.8-link-against-libreport.patch
 # (proyvind): port to rpm5 api
 Patch11: abrt-2.0.8-rpm5.patch
+BuildRequires: autoconf automake libtool
 BuildRequires: dbus-devel libdbus-glib-devel
-BuildRequires: gtk2-devel
+BuildRequires: gtk+3.0-devel
 BuildRequires: curl-devel
 BuildRequires: rpm-devel
-BuildRequires: sqlite-devel > 3.0
+BuildRequires: sqlite3-devel > 3.0
 BuildRequires: desktop-file-utils
 #BuildRequires: nss-devel
 BuildRequires: libnotify-devel
@@ -53,16 +54,16 @@ BuildRequires: pkgconfig(libreport-gtk) => 2.0.9
 BuildRequires: gnome-common
 BuildRequires: bison
 BuildRequires: asciidoc
-BuildRequires: docbook-style-xsl docbook5-style-xsl
+BuildRequires: docbook-style-xsl
 BuildRequires: xmlto
 BuildRequires: libgnome-keyring-devel
 BuildRequires: gettext-devel
 %if %{?with_systemd}
 BuildRequires: systemd-units
 %endif
-BuildRequires: pkgconfig(btparser)
-BuildRequires: pkgconfig(libreport)
-BuildRequires: pkgconfig(libreport-gtk)
+BuildRequires: pkgconfig(btparser) => 0.16
+BuildRequires: pkgconfig(libreport) => 2.0.9
+BuildRequires: pkgconfig(libreport-gtk) => 2.0.9
 Requires: %{lib_name} >= %{version}-%{release}
 Requires(pre): rpm-helper
 Requires(post): rpm-helper
@@ -80,44 +81,353 @@ Obsoletes: abrt-plugin-sosreport < 1.1.18
 to create a bug report with all informations needed by maintainer to fix it.
 It uses plugin system to extend its functionality.
 
+%package -n %{lib_name}
+Summary: Libraries for %{name}
+Group: System/Libraries
+
+%description -n %{lib_name}
+Libraries for %{name}.
+
+%package -n %{lib_name_devel}
+Summary: Development libraries for %{name}
+Group: Development/C
+Requires: %{lib_name} = %{version}-%{release}
+Requires: abrt = %{version}-%{release}
+Obsoletes: %{_lib}abrt0-devel
+
+%description -n %{lib_name_devel}
+Development libraries and headers for %{name}.
+
+%package gui
+Summary: %{name}'s gui
+Group: Graphical desktop/Other
+Requires: %{name} = %{version}-%{release}
+Requires: dbus-python, pygtk2.0, pygtk2.0-libglade
+Requires: python-gobject
+Requires: gnome-python-desktop
+Requires: libreport-gtk
+
+%description gui
+GTK+ wizard for convenient bug reporting.
+
+%package addon-ccpp
+Summary: %{name}'s C/C++ addon
+Group: System/Libraries
+Requires: elfutils
+Requires: %{name} = %{version}-%{release}
+
+%description addon-ccpp
+This package contains hook for C/C++ crashed programs and %{name}'s C/C++
+analyzer plugin.
+
+%package addon-kerneloops
+Summary: %{name}'s kerneloops addon
+Group: System/Libraries
+Requires: curl
+Requires: %{name} = %{version}-%{release}
+#Obsoletes: kerneloops
+
+%description addon-kerneloops
+This package contains plugin for collecting kernel crash information
+and reporter plugin which sends this information to specified server,
+usually to kerneloops.org.
+
+%package addon-vmcore
+Summary: %{name}'s vmcore addon
+Group: System/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: abrt-addon-kerneloops
+
+%description addon-vmcore
+This package contains plugin for collecting kernel crash information from
+vmcore files.
+
+%package addon-python
+Summary: %{name}'s addon for catching and analyzing Python exceptions
+Group: System/Libraries
+Requires: %{name} = %{version}-%{release}
+
+%description addon-python
+This package contains python hook and python analyzer plugin for handling
+uncaught exception in python programs.
+
+
+%package cli
+Summary: %{name}'s command line interface
+Group: Graphical desktop/Other
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-addon-kerneloops
+Requires: %{name}-addon-ccpp, %{name}-addon-python
+
+%description cli
+This package contains simple command line client for controlling abrt 
+daemon over the sockets.
+
+%package desktop
+Summary: Virtual package that installs all necessary packages
+Group: Graphical desktop/Other
+# This package gets installed when anything requests bug-buddy -
+# happens when users upgrade Fn to Fn+1;
+# or if user just wants "typical desktop installation".
+# Installing abrt-desktop should result in the abrt which works without
+# any tweaking in abrt.conf (IOW: all plugins mentioned there must be installed)
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-addon-kerneloops
+Requires: %{name}-addon-vmcore
+Requires: %{name}-addon-ccpp, %{name}-addon-python
+# Default config of addon-ccpp requires gdb
+Requires: gdb >= 7.0-3
+Requires: %{name}-gui
+#Obsoletes: bug-buddy
+#Provides: bug-buddy
+
+%description desktop
+Virtual package to make easy default installation on desktop environments.
+
+%if 0
+%package retrace-server
+Summary: %{name}'s retrace server using HTTP protocol
+Group:   Graphical desktop/Other
+Requires: abrt-addon-ccpp
+Requires: gdb >= 7.0-3
+Requires: apache-mod_wsgi, apache-mod_ssl, python-webob
+Requires: mock, xz, elfutils, createrepo
+Requires(preun): /sbin/install-info
+Requires(post): /sbin/install-info
+
+%description retrace-server
+The retrace server provides a coredump analysis and backtrace
+generation service over a network using HTTP protocol.
+%endif
+
+%prep
+
+%setup -q
+%apply_patches
+# (tv)) disable -Werror:
+perl -pi -e 's!-Werror!-Wno-deprecated!' configure{.ac,} */*/Makefile*
+
+%build
+NOCONFIGURE=yes gnome-autogen.sh
+
+%configure2_5x \
+%if !%{with_systemd}
+    --without-systemdsystemunitdir \
+%endif
+%if %{with_systemd}
+    --with-systemdsystemunitdir=/lib/systemd/system \
+%endif
+    --disable-rpath \
+    --enable-gtk3
+
+%make
+
+%install
+
+%makeinstall_std
+%find_lang %{name}
+
+# remove all .la and .a files
+find %{buildroot} -name '*.la' -or -name '*.a' | xargs rm -f
+%if !%{with_systemd}
+mkdir -p %{buildroot}/%{_initrddir}
+install -m 755 %SOURCE1 %{buildroot}/%{_initrddir}/%{name}d
+install -m 755 %SOURCE5 %{buildroot}/%{_initrddir}/%{name}-ccpp
+install -m 755 %SOURCE6 %{buildroot}/%{_initrddir}/%{name}-oops
+sed -i 's!@libexec@!%_libdir!' %{buildroot}/%{_initrddir}/%{name}-ccpp
+%endif
+mkdir -p %{buildroot}/var/cache/%{name}-di
+mkdir -p %{buildroot}/var/run/%{name}
+mkdir -p %{buildroot}/var/spool/%{name}
+mkdir -p %{buildroot}/var/spool/%{name}-retrace
+mkdir -p %{buildroot}/var/cache/%{name}-retrace
+mkdir -p %{buildroot}/var/log/%{name}-retrace
+mkdir -p %{buildroot}/var/spool/%{name}-upload
+
+# remove fedora gpg key
+rm -f %{buildroot}%{_sysconfdir}/abrt/gpg_keys
+touch %{buildroot}%{_sysconfdir}/abrt/gpg_keys
+
+touch %buildroot/var/run/abrt/abrt.socket
+touch %buildroot/var/run/abrtd.pid
+
+# install ulimit disabler
+mkdir -p %{buildroot}%{_sysconfdir}/profile.d/
+install -m0644 %SOURCE2 %SOURCE3 %{buildroot}%{_sysconfdir}/profile.d/
+
+desktop-file-install \
+        --dir %{buildroot}%{_sysconfdir}/xdg/autostart \
+        src/applet/%{name}-applet.desktop
+
+# replace with our own version
+cat %{SOURCE4} > %{buildroot}/usr/bin/%{name}-debuginfo-install
+
+#remove RH specific plugins
+rm -f %{buildroot}%{_libdir}/%{name}/{RHTSupport.glade,libRHTSupport.so}
+rm -f %{buildroot}%{_sysconfdir}/%{name}/plugins/RHTSupport.conf
+rm -f %{buildroot}%{_sysconfdir}/%{name}/events.d/rhtsupport_events.conf
+rm -f %{buildroot}%{_sysconfdir}/%{name}/events/report_RHTSupport.xml
+rm -f %{buildroot}%{_bindir}/%{name}-action-rhtsupport
+
+# After everything is installed, remove info dir
+rm -f %{buildroot}%{_infodir}/dir
+
 %pre
 %_pre_useradd %{name} %{_sysconfdir}/%{name} /bin/nologin
 %_pre_groupadd %{name} %{name}
 
 %post
-%_post_service %{name}d
-%if %{?with_systemd}
-# Enable (but don't start) the units by default
-  /bin/systemctl enable %{name}d.service >/dev/null 2>&1 || :
+if [ $1 -eq 1 ]; then
+%if %{with systemd}
+    # Enable (but don't start) the units by default
+    /bin/systemctl enable abrtd.service >/dev/null 2>&1 || :
+%else
+    /sbin/chkconfig --add abrtd
 %endif
+fi
+%{_libexecdir}/abrt1-to-abrt2 || :
 
-%posttrans
-service abrtd condrestart >/dev/null 2>&1 || :
+%post addon-ccpp
+# this is required for transition from 1.1.x to 2.x
+# because /cache/abrt-di/* was created under root with root:root
+# so 2.x fails when it tries to extract debuginfo there..
+chown -R abrt:abrt %{_localstatedir}/cache/abrt-di
+if [ $1 -eq 1 ]; then
+%if %{with systemd}
+    # Enable (but don't start) the units by default
+    /bin/systemctl enable abrt-ccpp.service >/dev/null 2>&1 || :
+%else
+    /sbin/chkconfig --add abrt-ccpp
+%endif
+fi
+
+%post addon-kerneloops
+if [ $1 -eq 1 ]; then
+%if %{with systemd}
+    # Enable (but don't start) the units by default
+    /bin/systemctl enable abrt-oops.service >/dev/null 2>&1 || :
+%else
+    /sbin/chkconfig --add abrt-oops
+%endif
+fi
+
+%post addon-vmcore
+if [ $1 -eq 1 ]; then
+%if %{with systemd}
+    # Enable (but don't start) the units by default
+    /bin/systemctl enable abrt-vmcore.service >/dev/null 2>&1 || :
+%else
+    /sbin/chkconfig --add abrt-vmcore
+%endif
+fi
 
 %preun
-%_preun_service %{name}d
-%if %{?with_systemd}
 if [ "$1" -eq "0" ] ; then
-  /bin/systemctl stop %{name}d.service >/dev/null 2>&1 || :
-  /bin/systemctl disable %{name}d.service >/dev/null 2>&1 || :
-fi
+%if %{with systemd}
+    /bin/systemctl --no-reload disable abrtd.service > /dev/null 2>&1 || :
+    /bin/systemctl stop abrtd.service >/dev/null 2>&1 || :
+%else
+    service abrtd stop >/dev/null 2>&1
+    /sbin/chkconfig --del abrtd
 %endif
+fi
+
+%preun addon-ccpp
+if [ "$1" -eq "0" ] ; then
+%if %{with systemd}
+    /bin/systemctl --no-reload disable abrt-ccpp.service >/dev/null 2>&1 || :
+    /bin/systemctl stop abrt-ccpp.service >/dev/null 2>&1 || :
+%else
+    service abrt-ccpp stop >/dev/null 2>&1
+    /sbin/chkconfig --del abrt-ccpp
+%endif
+fi
+
+%preun addon-kerneloops
+if [ "$1" -eq "0" ] ; then
+%if %{with systemd}
+    /bin/systemctl --no-reload abrt-oops.service >/dev/null 2>&1 || :
+    /bin/systemctl stop abrt-oops.service >/dev/null 2>&1 || :
+%else
+    service abrt-oops stop >/dev/null 2>&1
+    /sbin/chkconfig --del abrt-oops
+%endif
+fi
+
+%preun addon-vmcore
+if [ "$1" -eq "0" ] ; then
+%if %{with systemd}
+    /bin/systemctl --no-reload abrt-vmcore.service >/dev/null 2>&1 || :
+    /bin/systemctl stop abrt-vmcore.service >/dev/null 2>&1 || :
+%else
+    service abrt-vmcore stop >/dev/null 2>&1
+    /sbin/chkconfig --del abrt-vmcore
+%endif
+fi
 
 %postun
 %_postun_userdel %{name}
 %_postun_groupdel %{name} %{name}
-%if %{?with_systemd}
+%if %{with systemd}
 if [ $1 -ge 1 ] ; then
 # On upgrade, reload init system configuration if we changed unit files
-  /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+fi
+%endif
+
+%if %{with systemd}
+%postun addon-kerneloops
+/bin/systemctl daemon-reload >/dev/null 2>&1 || :
+
+%postun addon-vmcore
+/bin/systemctl daemon-reload >/dev/null 2>&1 || :
+
+%postun addon-ccpp
+/bin/systemctl daemon-reload >/dev/null 2>&1 || :
+%endif
+
+%post gui
+# update icon cache
+touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
+
+%postun gui
+if [ $1 -eq 0 ] ; then
+    touch --no-create %{_datadir}/icons/hicolor &>/dev/null
+    gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+fi
+
+%posttrans
+service abrtd condrestart >/dev/null 2>&1 || :
+
+%posttrans addon-ccpp
+service abrt-ccpp condrestart >/dev/null 2>&1 || :
+
+%posttrans addon-kerneloops
+service abrt-oops condrestart >/dev/null 2>&1 || :
+
+%posttrans addon-vmcore
+service abrt-vmcore condrestart >/dev/null 2>&1 || :
+
+%posttrans gui
+gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+
+%if 0
+%post retrace-server
+/sbin/install-info %{_infodir}/abrt-retrace-server %{_infodir}/dir 2> /dev/null || :
+/usr/sbin/usermod -G mock apache 2> /dev/null || :
+
+%preun retrace-server
+if [ "$1" = 0 ]; then
+  /sbin/install-info --delete %{_infodir}/abrt-retrace-server %{_infodir}/dir 2> /dev/null || :
 fi
 %endif
 
 %files -f %{name}.lang
-%defattr(-,root,root,-)
 %doc README COPYING
-#systemd
-%if %{?with_systemd}
+%if %{with systemd}
+/lib/systemd/system/abrtd.service
+%else
+%{_initrddir}/abrtd
 %endif
 %{_sbindir}/%{name}d
 %{_sbindir}/%{name}-server
@@ -140,7 +450,6 @@ fi
 %{_sysconfdir}/libreport/events/analyze_RetraceServer.xml
 %ghost %attr(0666, -, -) %{_localstatedir}/run/%{name}/abrt.socket
 %ghost %attr(0644, -, -) %{_localstatedir}/run/%{name}d.pid
-%{_initrddir}/%{name}d
 #%dir %attr(0755, %{name}, %{name}) %{_localstatedir}/cache/%{name}
 %dir /var/run/%{name}
 %dir %{_sysconfdir}/%{name}
@@ -157,54 +466,16 @@ fi
 %{_mandir}/man5/abrt-action-save-package-data.conf.5.*
 %{_datadir}/dbus-1/system-services/com.redhat.%{name}.service
 
-#--------------------------------------------------------------------
-
-%package -n %{lib_name}
-Summary: Libraries for %{name}
-Group: System/Libraries
-
-%description -n %{lib_name}
-Libraries for %{name}.
-
 %files -n %{lib_name}
-%defattr(-,root,root,-)
 %{_libdir}/libabrt*.so.*
 
-#--------------------------------------------------------------------
-
-%package -n %{lib_name_devel}
-Summary: Development libraries for %{name}
-Group: Development/C
-Requires: %{lib_name} = %{version}-%{release}
-Requires: abrt = %{version}-%{release}
-Obsoletes: %{_lib}abrt0-devel
-
-%description -n %{lib_name_devel}
-Development libraries and headers for %{name}.
-
 %files -n %{lib_name_devel}
-%defattr(-,root,root,-)
 %{_includedir}/abrt/*
 %{_libdir}/libabrt*.so
 #FIXME: this should go to libreportgtk-devel package
 %{_libdir}/pkgconfig/%{name}.pc
 
-#--------------------------------------------------------------------
-
-%package gui
-Summary: %{name}'s gui
-Group: Graphical desktop/Other
-Requires: %{name} = %{version}-%{release}
-Requires: dbus-python, pygtk2.0, pygtk2.0-libglade
-Requires: python-gobject
-Requires: gnome-python-desktop
-Requires: libreport-gtk
-
-%description gui
-GTK+ wizard for convenient bug reporting.
-
 %files gui
-%defattr(-,root,root,-)
 %{_bindir}/%{name}-gui
 %{_datadir}/%{name}
 %{_datadir}/applications/%{name}.desktop
@@ -212,50 +483,7 @@ GTK+ wizard for convenient bug reporting.
 %{_bindir}/%{name}-applet
 %{_sysconfdir}/xdg/autostart/%{name}-applet.desktop
 
-#--------------------------------------------------------------------
-
-%package addon-ccpp
-Summary: %{name}'s C/C++ addon
-Group: System/Libraries
-Requires: elfutils
-Requires: %{name} = %{version}-%{release}
-
-%description addon-ccpp
-This package contains hook for C/C++ crashed programs and %{name}'s C/C++
-analyzer plugin.
-
-%post addon-ccpp
-chown -R abrt:abrt %{_localstatedir}/cache/abrt-di
-#if [ $1 -eq 1 ]; then
-/sbin/chkconfig --add abrt-ccpp
-#fi
-
-%if %{?with_systemd}
-if [ "$1" -eq "0" ] ; then
-    /bin/systemctl stop abrt-ccpp.service >/dev/null 2>&1 || :
-    /bin/systemctl disable abrt-ccpp.service >/dev/null 2>&1 || :
-fi
-%endif
-
-%posttrans addon-ccpp
-service abrt-ccpp condrestart >/dev/null 2>&1 || :
-
-%preun addon-ccpp
-if [ "$1" -eq "0" ] ; then
-  service abrt-ccpp stop >/dev/null 2>&1
-  /sbin/chkconfig --del abrt-ccpp
-fi
-
-#systemd (not tested):
-%if %{?with_systemd}
-if [ "$1" -eq "0" ] ; then
-    /bin/systemctl stop abrt-ccpp.service >/dev/null 2>&1 || :
-    /bin/systemctl disable abrt-ccpp.service >/dev/null 2>&1 || :
-fi
-%endif
-
 %files addon-ccpp
-%defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/CCpp.conf
 %{_sysconfdir}/libreport/events.d/ccpp_event.conf
 %{_sysconfdir}/libreport/events.d/gconf_event.conf
@@ -267,7 +495,11 @@ fi
 %{_sysconfdir}/libreport/events/collect_vimrc_user.xml
 %{_sysconfdir}/libreport/events/collect_vimrc_system.xml
 %dir %attr(0775, abrt, abrt) %{_localstatedir}/cache/abrt-di
+%if %{with systemd}
+/lib/systemd/system/abrt-ccpp.service
+%else
 %{_initrddir}/abrt-ccpp
+%endif
 %{_libdir}/abrt-hook-ccpp
 %{_sysconfdir}/profile.d/00abrt.*
 %{_bindir}/abrt-action-analyze-c
@@ -286,101 +518,32 @@ fi
 %{_mandir}/man*/abrt-action-list-dsos.*
 %{_mandir}/man1/abrt-install-ccpp-hook.*
 
-#--------------------------------------------------------------------
-
-%package addon-kerneloops
-Summary: %{name}'s kerneloops addon
-Group: System/Libraries
-Requires: curl
-Requires: %{name} = %{version}-%{release}
-#Obsoletes: kerneloops
-
-%description addon-kerneloops
-This package contains plugin for collecting kernel crash information
-and reporter plugin which sends this information to specified server,
-usually to kerneloops.org.
-
-%post addon-kerneloops
-if [ $1 -eq 1 ]; then
-    /sbin/chkconfig --add abrt-oops
-fi
-
-%posttrans addon-kerneloops
-service abrt-oops condrestart >/dev/null 2>&1 || :
-
-%preun addon-kerneloops
-if [ "$1" -eq "0" ] ; then
-    service abrt-oops stop >/dev/null 2>&1
-    /sbin/chkconfig --del abrt-oops
-fi
-#systemd (not tested):
-%if %{?with_systemd}
-if [ "$1" -eq "0" ] ; then
-    /bin/systemctl stop abrt-oops.service >/dev/null 2>&1 || :
-    /bin/systemctl disable abrt-oops.service >/dev/null 2>&1 || :
-fi
-%endif
-
 %files addon-kerneloops
-%defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/libreport/events.d/koops_event.conf
+%if %{with systemd}
+/lib/systemd/system/abrt-oops.service
+%else
 %{_initrddir}/abrt-oops
+%endif
 %{_bindir}/abrt-dump-oops
 %{_bindir}/abrt-action-analyze-oops
 %{_mandir}/man1/abrt-action-analyze-oops.1*
 
-#--------------------------------------------------------------------
-
-%package addon-vmcore
-Summary: %{name}'s vmcore addon
-Group: System/Libraries
-Requires: %{name} = %{version}-%{release}
-Requires: abrt-addon-kerneloops
-
-%description addon-vmcore
-This package contains plugin for collecting kernel crash information from vmcore files.
-
-%post addon-vmcore
-if [ $1 -eq 1 ]; then
-    /sbin/chkconfig --add abrt-oops
-fi
-
-%posttrans addon-vmcore
-service abrt-oops condrestart >/dev/null 2>&1 || :
-
-%preun addon-vmcore
-if [ "$1" -eq "0" ] ; then
-    service abrt-oops stop >/dev/null 2>&1
-    /sbin/chkconfig --del abrt-oops
-fi
-#systemd (not tested):
-%if %{?with_systemd}
-if [ "$1" -eq "0" ] ; then
-    /bin/systemctl stop abrt-oops.service >/dev/null 2>&1 || :
-    /bin/systemctl disable abrt-oops.service >/dev/null 2>&1 || :
-fi
-%endif
-
 %files addon-vmcore
 %config(noreplace) %{_sysconfdir}/libreport/events.d/vmcore_event.conf
 %{_sysconfdir}/libreport/events/analyze_VMcore.xml
+%if %{with systemd}
+/lib/systemd/system/abrt-vmcore.service
+%else
 %{_initrddir}/abrt-vmcore
+%endif
 %{_sbindir}/abrt-harvest-vmcore
 %{_bindir}/abrt-action-analyze-vmcore
 
-#--------------------------------------------------------------------
-
-%package addon-python
-Summary: %{name}'s addon for catching and analyzing Python exceptions
-Group: System/Libraries
-Requires: %{name} = %{version}-%{release}
-
-%description addon-python
-This package contains python hook and python analyzer plugin for handling
-uncaught exception in python programs.
+%files cli
+%{_bindir}/abrt-cli
 
 %files addon-python
-%defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/python.conf
 %{_sysconfdir}/libreport/events.d/python_event.conf
 %{_bindir}/abrt-action-analyze-python
@@ -388,76 +551,10 @@ uncaught exception in python programs.
 %{py_puresitedir}/abrt*.py*
 %{py_puresitedir}/*.pth
 
-#--------------------------------------------------------------------
-
-%package cli
-Summary: %{name}'s command line interface
-Group: Graphical desktop/Other
-Requires: %{name} = %{version}-%{release}
-Requires: %{name}-addon-kerneloops
-Requires: %{name}-addon-ccpp, %{name}-addon-python
-
-%description cli
-This package contains simple command line client for controlling abrt 
-daemon over the sockets.
-
-%files cli
-%defattr(-,root,root,-)
-%{_bindir}/abrt-cli
-
-#--------------------------------------------------------------------
-
-%package desktop
-Summary: Virtual package to install all necessary packages for usage from desktop environment
-Group: Graphical desktop/Other
-# This package gets installed when anything requests bug-buddy -
-# happens when users upgrade Fn to Fn+1;
-# or if user just wants "typical desktop installation".
-# Installing abrt-desktop should result in the abrt which works without
-# any tweaking in abrt.conf (IOW: all plugins mentioned there must be installed)
-Requires: %{name} = %{version}-%{release}
-Requires: %{name}-addon-kerneloops
-Requires: %{name}-addon-vmcore
-Requires: %{name}-addon-ccpp, %{name}-addon-python
-# Default config of addon-ccpp requires gdb
-Requires: gdb >= 7.0-3
-Requires: %{name}-gui
-#Obsoletes: bug-buddy
-#Provides: bug-buddy
-
-%description desktop
-Virtual package to make easy default installation on desktop environments.
-
 %files desktop
-%defattr(-,root,root,-)
 
-#--------------------------------------------------------------------
 %if 0
-%package retrace-server
-Summary: %{name}'s retrace server using HTTP protocol
-Group:   Graphical desktop/Other
-Requires: abrt-addon-ccpp
-Requires: gdb >= 7.0-3
-Requires: apache-mod_wsgi, apache-mod_ssl, python-webob
-Requires: mock, xz, elfutils, createrepo
-Requires(preun): /sbin/install-info
-Requires(post): /sbin/install-info
-
-%post retrace-server
-/sbin/install-info %{_infodir}/abrt-retrace-server %{_infodir}/dir 2> /dev/null || :
-/usr/sbin/usermod -G mock apache 2> /dev/null || :
-
-%preun retrace-server
-if [ "$1" = 0 ]; then
-  /sbin/install-info --delete %{_infodir}/abrt-retrace-server %{_infodir}/dir 2> /dev/null || :
-fi
-
-%description retrace-server
-The retrace server provides a coredump analysis and backtrace
-generation service over a network using HTTP protocol.
-
 %files retrace-server
-%defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/%{name}/retrace.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/retrace_httpd.conf
 %config(noreplace) %{_sysconfdir}/yum.repos.d/retrace.repo
@@ -474,73 +571,3 @@ generation service over a network using HTTP protocol.
 %{_datadir}/abrt-retrace/plugins/*.py*
 %{_infodir}/abrt-retrace-server*
 %endif
-#--------------------------------------------------------------------
-
-%prep
-%setup -q
-%apply_patches
-# (tv)) disable -Werror:
-perl -pi -e 's!-Werror!-Wno-deprecated!' configure{.ac,} */*/Makefile*
-
-
-
-
-
-%build
-NOCONFIGURE=yes gnome-autogen.sh
-
-%configure2_5x \
-%if !%{with_systemd}
-	--without-systemdsystemunitdir \
-%endif
-	--disable-rpath
-%make
-
-%install
-%makeinstall_std
-%find_lang %{name}
-
-# remove all .la and .a files
-find %{buildroot} -name '*.la' -or -name '*.a' | xargs rm -f
-mkdir -p %{buildroot}/%{_initrddir}
-install -m 755 %SOURCE1 %{buildroot}/%{_initrddir}/%{name}d
-install -m 755 %SOURCE5 %{buildroot}/%{_initrddir}/%{name}-ccpp
-install -m 755 %SOURCE6 %{buildroot}/%{_initrddir}/%{name}-oops
-mkdir -p %{buildroot}/var/cache/%{name}-di
-mkdir -p %{buildroot}/var/run/%{name}
-mkdir -p %{buildroot}/var/spool/%{name}
-mkdir -p %{buildroot}/var/spool/%{name}-retrace
-mkdir -p %{buildroot}/var/cache/%{name}-retrace
-mkdir -p %{buildroot}/var/log/%{name}-retrace
-mkdir -p %{buildroot}/var/spool/%{name}-upload
-
-sed -i 's!@libexec@!%_libdir!' %{buildroot}/%{_initrddir}/%{name}-ccpp
-
-# remove fedora gpg key
-rm -f %{buildroot}%{_sysconfdir}/abrt/gpg_keys
-touch %{buildroot}%{_sysconfdir}/abrt/gpg_keys
-
-touch %buildroot/var/run/abrt/abrt.socket
-touch %buildroot/var/run/abrtd.pid
-
-
-# install ulimit disabler
-mkdir -p %{buildroot}%{_sysconfdir}/profile.d/
-install -m755 %SOURCE2 %SOURCE3 %{buildroot}%{_sysconfdir}/profile.d/
-
-desktop-file-install \
-        --dir %{buildroot}%{_sysconfdir}/xdg/autostart \
-        src/applet/%{name}-applet.desktop
-
-# replace with our own version
-cat %{SOURCE4} > %{buildroot}/usr/bin/%{name}-debuginfo-install
-
-#remove RH specific plugins
-rm -f %{buildroot}%{_libdir}/%{name}/{RHTSupport.glade,libRHTSupport.so}
-rm -f %{buildroot}%{_sysconfdir}/%{name}/plugins/RHTSupport.conf
-rm -f %{buildroot}%{_sysconfdir}/%{name}/events.d/rhtsupport_events.conf
-rm -f %{buildroot}%{_sysconfdir}/%{name}/events/report_RHTSupport.xml
-rm -f %{buildroot}%{_bindir}/%{name}-action-rhtsupport
-
-# After everything is installed, remove info dir
-rm -f %{buildroot}%{_infodir}/dir
