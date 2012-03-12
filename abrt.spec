@@ -10,7 +10,7 @@
 Summary: Automatic bug detection and reporting tool
 Name: abrt
 Version: 2.0.8
-Release: 2
+Release: 3
 License: GPLv2+
 Group:   System/Libraries
 URL: https://fedorahosted.org/abrt/
@@ -284,7 +284,6 @@ if [ $1 -eq 1 ]; then
     /sbin/chkconfig --add abrtd
 %endif
 fi
-%{_libexecdir}/abrt1-to-abrt2 || :
 
 %post addon-ccpp
 # this is required for transition from 1.1.x to 2.x
