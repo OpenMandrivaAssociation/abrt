@@ -49,7 +49,7 @@ BuildRequires: gettext
 BuildRequires: polkit-1-devel
 BuildRequires: libzip-devel, libtar-devel, bzip2-devel, zlib-devel
 BuildRequires: intltool
-BuildRequires: btparser-devel = 0.16
+BuildRequires: pkgconfig(btparser) => 0.16
 BuildRequires: pkgconfig(libreport) => 2.0.9
 BuildRequires: pkgconfig(libreport-gtk) => 2.0.9
 BuildRequires: gnome-common
@@ -73,7 +73,7 @@ Obsoletes: abrt-plugin-sqlite3 < 1.1.18
 Obsoletes: abrt-plugin-runapp < 1.1.18
 Obsoletes: abrt-plugin-filetransfer < 1.1.18
 Obsoletes: abrt-plugin-sosreport < 1.1.18
-BuildConflicts: %{mklibname abrt 0} %{mklibname abrt -d}
+BuildConflicts: %{mklibname abrt 0} %{mklibname abrt -d} abrt
 
 %description
 %{name} is a tool to help users to detect defects in applications and
