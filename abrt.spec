@@ -9,8 +9,8 @@
 
 Summary: Automatic bug detection and reporting tool
 Name: abrt
-Version: 2.0.8
-Release: 3
+Version: 2.0.10
+Release: 0
 License: GPLv2+
 Group:   System/Libraries
 URL: https://fedorahosted.org/abrt/
@@ -103,7 +103,7 @@ Group: Graphical desktop/Other
 Requires: %{name} = %{version}-%{release}
 Requires: dbus-python, pygtk2.0, pygtk2.0-libglade
 Requires: python-gobject
-Requires: gnome-python-desktop
+##Requires: gnome-python-desktop
 Requires: libreport-gtk
 
 %description gui
@@ -199,6 +199,16 @@ The retrace server provides a coredump analysis and backtrace
 generation service over a network using HTTP protocol.
 %endif
 
+%package addon-xorg
+Summary: %{name}'s Xorg addon
+Group: System/Libraries
+Requires: curl
+Requires: %{name} = %{version}-%{release}
+
+%description addon-xorg
+This package contains plugin for collecting Xorg crash information 
+from Xorg log.
+
 %prep
 
 %setup -q
@@ -208,6 +218,7 @@ perl -pi -e 's!-Werror!-Wno-deprecated!' configure{.ac,} */*/Makefile*
 
 %build
 NOCONFIGURE=yes gnome-autogen.sh
+%define Werror_cflags %nil
 
 %configure2_5x \
 %if !%{with_systemd}
@@ -436,6 +447,7 @@ fi
 %{_bindir}/%{name}-handle-upload
 %{_bindir}/%{name}-action-save-package-data
 %{_bindir}/%{name}-retrace-client
+%{_bindir}/abrt-watch-log
 %{_libexecdir}/abrt-handle-event
 %config(noreplace) %{_sysconfdir}/%{name}/abrt.conf
 %config(noreplace) %{_sysconfdir}/%{name}/abrt-action-save-package-data.conf
@@ -462,7 +474,8 @@ fi
 %{_mandir}/man8/abrt-dbus.8.*
 %{_mandir}/man5/abrt.conf.5.*
 %{_mandir}/man5/abrt-action-save-package-data.conf.5.*
-%{_datadir}/dbus-1/system-services/com.redhat.%{name}.service
+%{_datadir}/dbus-1/system-services/org.freedesktop.problems.service
+%{_datadir}/polkit-1/actions/abrt_polkit.policy
 
 %files -n %{lib_name}
 %{_libdir}/libabrt*.so.*
@@ -512,6 +525,7 @@ fi
 %{_mandir}/man*/abrt-action-analyze-c.*
 %{_mandir}/man*/abrt-action-trim-files.*
 %{_mandir}/man*/abrt-action-generate-backtrace.*
+%{_mandir}/man*/abrt-action-generate-core-backtrace.*
 %{_mandir}/man*/abrt-action-analyze-backtrace.*
 %{_mandir}/man*/abrt-action-list-dsos.*
 %{_mandir}/man1/abrt-install-ccpp-hook.*
@@ -537,17 +551,28 @@ fi
 %endif
 %{_sbindir}/abrt-harvest-vmcore
 %{_bindir}/abrt-action-analyze-vmcore
+%{_mandir}/man1/abrt-action-analyze-vmcore.1*
 
 %files cli
 %{_bindir}/abrt-cli
 
 %files addon-python
+%dir %{_sysconfdir}/%{name}/plugins
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/python.conf
 %{_sysconfdir}/libreport/events.d/python_event.conf
 %{_bindir}/abrt-action-analyze-python
 %{_mandir}/man1/abrt-action-analyze-python.1*
 %{py_puresitedir}/abrt*.py*
 %{py_puresitedir}/*.pth
+
+%files addon-xorg
+%config(noreplace) %{_sysconfdir}/libreport/events.d/xorg_event.conf
+%if %{with systemd}
+%{_unitdir}/abrt-xorg.service
+%else
+%{_initrddir}/abrt-xorg
+%endif
+%{_bindir}/abrt-dump-xorg
 
 %files desktop
 
