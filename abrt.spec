@@ -33,7 +33,8 @@ Patch10: abrt-2.0.8-link-against-libreport.patch
 # (proyvind): port to rpm5 api
 Patch11: abrt-2.0.8-rpm5.patch
 BuildRequires: autoconf automake libtool
-BuildRequires: dbus-devel libdbus-glib-devel
+BuildRequires: dbus-devel
+BuildRequires: pkgconfig(dbus-glib-1)
 BuildRequires: pkgconfig(gtk+-3.0)
 BuildRequires: curl-devel
 BuildRequires: rpm-devel
