@@ -34,7 +34,7 @@ Patch10: abrt-2.0.8-link-against-libreport.patch
 Patch11: abrt-2.0.8-rpm5.patch
 BuildRequires: autoconf automake libtool
 BuildRequires: dbus-devel libdbus-glib-devel
-BuildRequires: gtk+3.0-devel
+BuildRequires: pkgconfig(gtk+-3.0)
 BuildRequires: curl-devel
 BuildRequires: rpm-devel
 BuildRequires: sqlite3-devel > 3.0
