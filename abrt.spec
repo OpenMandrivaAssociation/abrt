@@ -7,74 +7,71 @@
 %define lib_name_devel %mklibname %{name} -d
 %define lib_report_devel %mklibname report -d
 
-Summary: Automatic bug detection and reporting tool
-Name: abrt
-Version: 2.0.10
-Release: 0
-License: GPLv2+
-Group:   System/Libraries
-URL: https://fedorahosted.org/abrt/
-Source0: https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-Source1: abrt.init
-Source2: 00abrt.sh
-Source3: 00abrt.csh
-Source4: abrt-debuginfo-install
-Source5: abrt-ccpp.init
-Source6: abrt-oops.init
-Patch0: abrt-2.0.8-format_security.patch
+Summary:	Automatic bug detection and reporting tool
+Name:		abrt
+Version:	2.0.10
+Release:	1
+License:	GPLv2+
+Group:		System/Libraries
+URL:		https://fedorahosted.org/abrt/
+Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
+Source1:	abrt.init
+Source2:	00abrt.sh
+Source3:	00abrt.csh
+Source4:	abrt-debuginfo-install
+Source5:	abrt-ccpp.init
+Source6:	abrt-oops.init
+Patch0:		abrt-2.0.8-format_security.patch
 # (fc) disable package signature check
-Patch2: abrt_disable_gpgcheck.diff
-# (pt) generate stacktrace twice to get missing -debug packages
-#Patch5: abrt-1.1.14-debug.patch
+Patch2:		abrt_disable_gpgcheck.diff
 # (fc) disable nspluginwrapper-i386 (Mdv bug #59237)
-Patch7: abrt-2.0.2-nspluginwrapper.patch
-Patch8: abrt-2.0.8-nonutf8-locale.patch
-Patch10: abrt-2.0.8-link-against-libreport.patch
+Patch7:		abrt-2.0.2-nspluginwrapper.patch
+Patch8:		abrt-2.0.8-nonutf8-locale.patch
+Patch10:	abrt-2.0.8-link-against-libreport.patch
 # (proyvind): port to rpm5 api
-Patch11: abrt-2.0.8-rpm5.patch
-BuildRequires: autoconf automake libtool
-BuildRequires: dbus-devel
-BuildRequires: pkgconfig(dbus-glib-1)
-BuildRequires: pkgconfig(gtk+-3.0)
-BuildRequires: curl-devel
-BuildRequires: rpm-devel
-BuildRequires: sqlite3-devel > 3.0
-BuildRequires: desktop-file-utils
-#BuildRequires: nss-devel
-BuildRequires: libnotify-devel
-BuildRequires: xmlrpc-c-devel
-BuildRequires: xmlrpc-c
-#BuildRequires: file-devel
-BuildRequires: python-devel
-BuildRequires: gettext
-BuildRequires: polkit-1-devel
-BuildRequires: libzip-devel, libtar-devel, bzip2-devel, zlib-devel
-BuildRequires: intltool
-BuildRequires: pkgconfig(btparser) => 0.16
-BuildRequires: pkgconfig(libreport) => 2.0.9
-BuildRequires: pkgconfig(libreport-gtk) => 2.0.9
-BuildRequires: gnome-common
-BuildRequires: bison
-BuildRequires: asciidoc
-BuildRequires: docbook-style-xsl
-BuildRequires: xmlto
-BuildRequires: libgnome-keyring-devel
-BuildRequires: gettext-devel
+Patch11:	abrt-2.0.8-rpm5.patch
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool
+BuildRequires:	dbus-devel
+BuildRequires:	pkgconfig(dbus-glib-1)
+BuildRequires:	pkgconfig(gtk+-3.0)
+BuildRequires:	curl-devel
+BuildRequires:	rpm-devel
+BuildRequires:	sqlite3-devel > 3.0
+BuildRequires:	desktop-file-utils
+BuildRequires:	libnotify-devel
+BuildRequires:	xmlrpc-c-devel
+BuildRequires:	xmlrpc-c
+BuildRequires:	python-devel
+BuildRequires:	gettext
+BuildRequires:	polkit-1-devel
+BuildRequires:	libzip-devel
+BuildRequires:	libtar-devel
+BuildRequires:	bzip2-devel
+BuildRequires:	zlib-devel
+BuildRequires:	intltool
+BuildRequires:	pkgconfig(btparser) => 0.16
+BuildRequires:	pkgconfig(libreport) => 2.0.9
+BuildRequires:	pkgconfig(libreport-gtk) => 2.0.9
+BuildRequires:	gnome-common
+BuildRequires:	bison
+BuildRequires:	asciidoc
+BuildRequires:	docbook-style-xsl
+BuildRequires:	xmlto
+BuildRequires:	libgnome-keyring-devel
+BuildRequires:	gettext-devel
 %if %{?with_systemd}
-BuildRequires: systemd-units
+BuildRequires:	systemd-units
 %endif
-Requires: %{lib_name} >= %{version}-%{release}
-Requires(pre): rpm-helper
-Requires(post): rpm-helper
-Requires(preun): rpm-helper
-Requires(postun): rpm-helper
-Obsoletes: abrt-plugin-catcut < 1.1.13
-Obsoletes: abrt-plugin-sqlite3 < 1.1.18
+Requires:	%{lib_name} >= %{version}-%{release}
+Obsoletes:	abrt-plugin-catcut < 1.1.13
+Obsoletes:	abrt-plugin-sqlite3 < 1.1.18
 # required for transition from 1.1.13, can be removed after some time
-Obsoletes: abrt-plugin-runapp < 1.1.18
-Obsoletes: abrt-plugin-filetransfer < 1.1.18
-Obsoletes: abrt-plugin-sosreport < 1.1.18
-BuildConflicts: %{mklibname abrt 0} %{mklibname abrt -d} abrt
+Obsoletes:	abrt-plugin-runapp < 1.1.18
+Obsoletes:	abrt-plugin-filetransfer < 1.1.18
+Obsoletes:	abrt-plugin-sosreport < 1.1.18
+BuildConflicts:	%{mklibname abrt 0} %{mklibname abrt -d} abrt
 
 %description
 %{name} is a tool to help users to detect defects in applications and
@@ -82,50 +79,50 @@ to create a bug report with all informations needed by maintainer to fix it.
 It uses plugin system to extend its functionality.
 
 %package -n %{lib_name}
-Summary: Libraries for %{name}
-Group: System/Libraries
+Summary:	Libraries for %{name}
+Group:		System/Libraries
 
 %description -n %{lib_name}
 Libraries for %{name}.
 
 %package -n %{lib_name_devel}
-Summary: Development libraries for %{name}
-Group: Development/C
-Requires: %{lib_name} = %{version}-%{release}
-Requires: abrt = %{version}-%{release}
-Obsoletes: %{_lib}abrt0-devel
+Summary:	Development libraries for %{name}
+Group:		Development/C
+Requires:	%{lib_name} = %{version}-%{release}
+Requires:	abrt = %{version}-%{release}
+Obsoletes:	%{_lib}abrt0-devel
 
 %description -n %{lib_name_devel}
 Development libraries and headers for %{name}.
 
 %package gui
-Summary: %{name}'s gui
-Group: Graphical desktop/Other
-Requires: %{name} = %{version}-%{release}
-Requires: dbus-python, pygtk2.0, pygtk2.0-libglade
-Requires: python-gobject
-##Requires: gnome-python-desktop
-Requires: libreport-gtk
+Summary:	%{name}'s gui
+Group:		Graphical desktop/Other
+Requires:	%{name} = %{version}-%{release}
+Requires:	dbus-python
+Requires:	pygtk2.0
+Requires:	pygtk2.0-libglade
+Requires:	python-gobject
+Requires:	libreport-gtk
 
 %description gui
 GTK+ wizard for convenient bug reporting.
 
 %package addon-ccpp
-Summary: %{name}'s C/C++ addon
-Group: System/Libraries
-Requires: elfutils
-Requires: %{name} = %{version}-%{release}
+Summary:	%{name}'s C/C++ addon
+Group:		System/Libraries
+Requires:	elfutils
+Requires:	%{name} = %{version}-%{release}
 
 %description addon-ccpp
 This package contains hook for C/C++ crashed programs and %{name}'s C/C++
 analyzer plugin.
 
 %package addon-kerneloops
-Summary: %{name}'s kerneloops addon
-Group: System/Libraries
-Requires: curl
-Requires: %{name} = %{version}-%{release}
-#Obsoletes: kerneloops
+Summary:	%{name}'s kerneloops addon
+Group:		System/Libraries
+Requires:	curl
+Requires:	%{name} = %{version}-%{release}
 
 %description addon-kerneloops
 This package contains plugin for collecting kernel crash information
@@ -133,31 +130,31 @@ and reporter plugin which sends this information to specified server,
 usually to kerneloops.org.
 
 %package addon-vmcore
-Summary: %{name}'s vmcore addon
-Group: System/Libraries
-Requires: %{name} = %{version}-%{release}
-Requires: abrt-addon-kerneloops
+Summary:	%{name}'s vmcore addon
+Group:		System/Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	abrt-addon-kerneloops
 
 %description addon-vmcore
 This package contains plugin for collecting kernel crash information from
 vmcore files.
 
 %package addon-python
-Summary: %{name}'s addon for catching and analyzing Python exceptions
-Group: System/Libraries
-Requires: %{name} = %{version}-%{release}
+Summary:	%{name}'s addon for catching and analyzing Python exceptions
+Group:		System/Libraries
+Requires:	%{name} = %{version}-%{release}
 
 %description addon-python
 This package contains python hook and python analyzer plugin for handling
 uncaught exception in python programs.
 
-
 %package cli
-Summary: %{name}'s command line interface
-Group: Graphical desktop/Other
-Requires: %{name} = %{version}-%{release}
-Requires: %{name}-addon-kerneloops
-Requires: %{name}-addon-ccpp, %{name}-addon-python
+Summary:	%{name}'s command line interface
+Group:		Graphical desktop/Other
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-addon-kerneloops
+Requires:	%{name}-addon-ccpp
+Requires:	%{name}-addon-python
 
 %description cli
 This package contains simple command line client for controlling abrt 
@@ -171,29 +168,29 @@ Group: Graphical desktop/Other
 # or if user just wants "typical desktop installation".
 # Installing abrt-desktop should result in the abrt which works without
 # any tweaking in abrt.conf (IOW: all plugins mentioned there must be installed)
-Requires: %{name} = %{version}-%{release}
-Requires: %{name}-addon-kerneloops
-Requires: %{name}-addon-vmcore
-Requires: %{name}-addon-ccpp, %{name}-addon-python
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-addon-kerneloops
+Requires:	%{name}-addon-vmcore
+Requires:	%{name}-addon-ccpp
+Requires:	%{name}-addon-python
 # Default config of addon-ccpp requires gdb
-Requires: gdb >= 7.0-3
-Requires: %{name}-gui
-#Obsoletes: bug-buddy
-#Provides: bug-buddy
+Requires:	gdb >= 7.0-3
+Requires:	%{name}-gui
 
 %description desktop
 Virtual package to make easy default installation on desktop environments.
 
 %if 0
 %package retrace-server
-Summary: %{name}'s retrace server using HTTP protocol
-Group:   Graphical desktop/Other
-Requires: abrt-addon-ccpp
-Requires: gdb >= 7.0-3
-Requires: apache-mod_wsgi, apache-mod_ssl, python-webob
-Requires: mock, xz, elfutils, createrepo
-Requires(preun): /sbin/install-info
-Requires(post): /sbin/install-info
+Summary:	%{name}'s retrace server using HTTP protocol
+Group:		Graphical desktop/Other
+Requires:	abrt-addon-ccpp
+Requires:	gdb >= 7.0-3
+Requires:	apache-mod_wsgi, apache-mod_ssl, python-webob
+Requires:	mock
+Requires:	xz
+Requires:	elfutils
+Requires:	createrepo
 
 %description retrace-server
 The retrace server provides a coredump analysis and backtrace
@@ -201,17 +198,16 @@ generation service over a network using HTTP protocol.
 %endif
 
 %package addon-xorg
-Summary: %{name}'s Xorg addon
-Group: System/Libraries
-Requires: curl
-Requires: %{name} = %{version}-%{release}
+Summary:	%{name}'s Xorg addon
+Group:		System/Libraries
+Requires:	curl
+Requires:	%{name} = %{version}-%{release}
 
 %description addon-xorg
 This package contains plugin for collecting Xorg crash information 
 from Xorg log.
 
 %prep
-
 %setup -q
 %apply_patches
 # (tv)) disable -Werror:
@@ -234,7 +230,6 @@ NOCONFIGURE=yes gnome-autogen.sh
 %make
 
 %install
-
 %makeinstall_std
 %find_lang %{name}
 
@@ -259,12 +254,12 @@ mkdir -p %{buildroot}/var/spool/%{name}-upload
 rm -f %{buildroot}%{_sysconfdir}/abrt/gpg_keys
 touch %{buildroot}%{_sysconfdir}/abrt/gpg_keys
 
-touch %buildroot/var/run/abrt/abrt.socket
-touch %buildroot/var/run/abrtd.pid
+touch %{buildroot}/var/run/abrt/abrt.socket
+touch %{buildroot}/var/run/abrtd.pid
 
 # install ulimit disabler
 mkdir -p %{buildroot}%{_sysconfdir}/profile.d/
-install -m0644 %SOURCE2 %SOURCE3 %{buildroot}%{_sysconfdir}/profile.d/
+install -m0644 %{SOURCE2} %{SOURCE3} %{buildroot}%{_sysconfdir}/profile.d/
 
 desktop-file-install \
         --dir %{buildroot}%{_sysconfdir}/xdg/autostart \
@@ -423,13 +418,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %if 0
 %post retrace-server
-/sbin/install-info %{_infodir}/abrt-retrace-server %{_infodir}/dir 2> /dev/null || :
 /usr/sbin/usermod -G mock apache 2> /dev/null || :
-
-%preun retrace-server
-if [ "$1" = 0 ]; then
-  /sbin/install-info --delete %{_infodir}/abrt-retrace-server %{_infodir}/dir 2> /dev/null || :
-fi
 %endif
 
 %files -f %{name}.lang
