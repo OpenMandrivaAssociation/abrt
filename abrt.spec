@@ -9,7 +9,7 @@
 
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
-Version:	2.0.10
+Version:	2.0.12
 Release:	1
 License:	GPLv2+
 Group:		System/Libraries
@@ -25,9 +25,9 @@ Patch0:		abrt-2.0.8-format_security.patch
 # (fc) disable package signature check
 Patch2:		abrt_disable_gpgcheck.diff
 # (fc) disable nspluginwrapper-i386 (Mdv bug #59237)
-Patch7:		abrt-2.0.2-nspluginwrapper.patch
+Patch7:		abrt-2.0.12-nspluginwrapper.patch
 Patch8:		abrt-2.0.8-nonutf8-locale.patch
-Patch10:	abrt-2.0.8-link-against-libreport.patch
+#Patch10:	abrt-2.0.8-link-against-libreport.patch
 # (proyvind): port to rpm5 api
 Patch11:	abrt-2.0.8-rpm5.patch
 BuildRequires:	autoconf
