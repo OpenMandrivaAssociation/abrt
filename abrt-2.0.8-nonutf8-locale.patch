@@ -1,0 +1,30 @@
+--- abrt-2.0.8/src/applet/applet.c.nonutf8-locale~	2012-01-25 09:34:35.000000000 +0100
++++ abrt-2.0.8/src/applet/applet.c	2012-03-11 21:05:04.350345375 +0100
+@@ -712,6 +712,7 @@ int main(int argc, char** argv)
+ #if ENABLE_NLS
+     bindtextdomain(PACKAGE, LOCALEDIR);
+     textdomain(PACKAGE);
++    bind_textdomain_codeset(PACKAGE, "UTF-8");
+ #endif
+ 
+     abrt_init(argv);
+--- abrt-2.0.8/src/daemon/abrtd.c.nonutf8-locale~	2012-01-25 09:34:35.000000000 +0100
++++ abrt-2.0.8/src/daemon/abrtd.c	2012-03-11 21:05:32.902359606 +0100
+@@ -632,6 +632,7 @@ int main(int argc, char** argv)
+ #if ENABLE_NLS
+     bindtextdomain(PACKAGE, LOCALEDIR);
+     textdomain(PACKAGE);
++    bind_textdomain_codeset(PACKAGE, "UTF-8");
+ #endif
+ 
+     abrt_init(argv);
+--- abrt-2.0.8/src/gui-gtk/main.c.nonutf8-locale~	2012-01-25 09:34:35.000000000 +0100
++++ abrt-2.0.8/src/gui-gtk/main.c	2012-03-11 21:05:32.902359606 +0100
+@@ -1040,6 +1040,7 @@ int main(int argc, char **argv)
+ #if ENABLE_NLS
+     bindtextdomain(PACKAGE, LOCALEDIR);
+     textdomain(PACKAGE);
++    bind_textdomain_codeset(PACKAGE, "UTF-8");
+ #endif
+ 
+     abrt_init(argv);

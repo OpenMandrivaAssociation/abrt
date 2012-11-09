@@ -1,0 +1,13 @@
+diff --git a/src/daemon/abrt-action-save-package-data.conf b/src/daemon/abrt-action-save-package-data.conf
+index 18be125..62c332a 100644
+--- a/src/daemon/abrt-action-save-package-data.conf
++++ b/src/daemon/abrt-action-save-package-data.conf
+@@ -3,7 +3,7 @@
+ # the list of public keys used to check the signature is
+ # in the file gpg_keys
+ #
+-OpenGPGCheck = yes
++OpenGPGCheck = no
+ 
+ # Blacklisted packages
+ #
