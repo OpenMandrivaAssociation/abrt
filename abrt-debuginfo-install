@@ -1,0 +1,54 @@
+#!/bin/sh
+# Called by abrtd before producing a backtrace.
+# The task of this script is to install debuginfos.
+
+core="$1"
+debug=false
+
+# stderr may be used for status messages too
+exec 2>&1
+
+error_msg_and_die() {
+    echo "$*"
+    exit 2
+}
+
+count_words() {
+    echo $#
+}
+
+print_missing_debuginfos() {
+    local dir
+    local executable
+    dir="$1"
+    sed -n -e 's|.*from /|/|p' < "$dir"/backtrace | sort -u
+    executable=`cat "$dir"/executable`
+    test -f /usr/lib/debug/"$executable" || echo "$executable"
+}
+
+print_package_names() {
+     echo $missing_debuginfo_files | xargs rpm -qf --qf "%{SOURCERPM}\n" | sed 's/-[^-]*-[^-]*$/-debug/' | sort -u
+}
+
+# Sanity checking
+test -f "$core" || error_msg_and_die "not a file: '$core'"
+
+dir=`dirname "$core"`
+
+missing_debuginfo_files=`print_missing_debuginfos "$dir"`
+
+$debug && echo "missing_debuginfo_files:$missing_debuginfo_files"
+
+# Map $missing_debuginfo_files to package names.
+packages=`print_package_names`
+$debug && echo "packages:$packages"
+
+if test x"$packages" != x"" ; then
+    num_packages=`count_words $packages`
+    echo "Installing $num_packages packages"
+    urpmi.update debug
+    /usr/sbin/urpmi --auto --media debug $packages
+fi
+
+echo "All needed debuginfos are present"
+exit 0

@@ -1,8 +1,2 @@
 sources:
-  "00abrt.csh:"	6aaee26363addf00a19a02ed55e11c91040463ad
-  "00abrt.sh:"	6aaee26363addf00a19a02ed55e11c91040463ad
-  "abrt-2.0.12.tar.gz:"	d045f14e8e387dc1c612d526f725d81bf89c4242
-  "abrt-ccpp.init:"	95adf32aa78a94302bed7c76224d7af4820158d9
-  "abrt-debuginfo-install:"	e5ee81d6bd7e9dca4667344acab325a128b35779
-  "abrt.init:"	b5097cbf5a73d2819dca1111be6b527001af50dd
-  "abrt-oops.init:"	df5b034422e332eab9aaa5eae8e66820c3161e0f
+  "abrt-2.0.10.tar.gz": ccb09fee9a77f775d748ca82811dcac17f2fe1cf

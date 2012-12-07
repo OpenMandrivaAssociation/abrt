@@ -1,0 +1,9 @@
+--- abrt-2.0.8/src/lib/Makefile.am.link~	2012-03-11 20:58:10.588139141 +0100
++++ abrt-2.0.8/src/lib/Makefile.am	2012-03-11 20:58:12.784140235 +0100
+@@ -23,4 +23,5 @@ libabrt_la_CPPFLAGS = \
+ libabrt_la_LDFLAGS = \
+     -version-info 0:1:0
+ libabrt_la_LIBADD = \
+-    $(GLIB_LIBS)
++    $(GLIB_LIBS) \
++    $(LIBREPORT_LIBS)
