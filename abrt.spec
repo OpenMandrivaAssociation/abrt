@@ -38,7 +38,7 @@ BuildRequires: pkgconfig(dbus-glib-1)
 BuildRequires: pkgconfig(gtk+-3.0)
 BuildRequires: curl-devel
 BuildRequires: rpm-devel
-BuildRequires: sqlite3-devel > 3.0
+BuildRequires: pkgconfig(sqlite3)
 BuildRequires: desktop-file-utils
 #BuildRequires: nss-devel
 BuildRequires: libnotify-devel
