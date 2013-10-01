@@ -474,7 +474,6 @@ fi
 %dir /var/run/%{name}
 %dir %{_sysconfdir}/%{name}
 %dir %{_sysconfdir}/%{name}/plugins
-%dir %{_datadir}/locale/fa/LC_MESSAGES
 %{_mandir}/man1/abrt-handle-upload.1.*
 %{_mandir}/man1/abrt-server.1.*
 %{_mandir}/man1/abrt-action-save-package-data.1.*
