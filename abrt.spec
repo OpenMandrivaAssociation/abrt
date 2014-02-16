@@ -521,7 +521,7 @@ fi
 %else
 %{_initrddir}/abrt-ccpp
 %endif
-%{_libdir}/abrt-hook-ccpp
+%{_libexecdir}/abrt-hook-ccpp
 %{_sysconfdir}/profile.d/00abrt.*
 %{_bindir}/abrt-action-analyze-c
 %{_bindir}/abrt-action-trim-files
