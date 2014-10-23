@@ -1,2 +1,4 @@
+removed_sources:
+  abrt-2.0.10.tar.gz: ccb09fee9a77f775d748ca82811dcac17f2fe1cf
 sources:
-  "abrt-2.0.10.tar.gz": ccb09fee9a77f775d748ca82811dcac17f2fe1cf
+  abrt-2.3.0.tar.gz: 9d317e7b66a9f6a2e4f328625062bcb90b2d1688

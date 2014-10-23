@@ -9,8 +9,8 @@
 
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
-Version:	2.0.10
-Release:	8
+Version:	2.3.0
+Release:	1
 License:	GPLv2+
 Group:		System/Libraries
 URL:		https://fedorahosted.org/abrt/
@@ -21,17 +21,11 @@ Source3:	00abrt.csh
 Source4:	abrt-debuginfo-install
 Source5:	abrt-ccpp.init
 Source6:	abrt-oops.init
-Patch0:		abrt-2.0.8-format_security.patch
 # (fc) disable package signature check
 Patch2:		abrt_disable_gpgcheck.diff
-# (pt) generate stacktrace twice to get missing -debug packages
-#Patch5: abrt-1.1.14-debug.patch
-# (fc) disable nspluginwrapper-i386 (Mdv bug #59237)
-Patch7:		abrt-2.0.2-nspluginwrapper.patch
-Patch8:		abrt-2.0.8-nonutf8-locale.patch
-Patch10:	abrt-2.0.8-link-against-libreport.patch
 # (proyvind): port to rpm5 api
-Patch11:	abrt-2.0.8-rpm5.patch
+Patch11:	abrt-2.3.0-rpm5.patch
+Patch12:	abrt-2.0.19-drop-getetxt-in-favour-of-intltool.patch
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	libtool
@@ -52,7 +46,7 @@ BuildRequires:	gettext
 BuildRequires:	polkit-1-devel
 BuildRequires:	libzip-devel, libtar-devel, bzip2-devel, zlib-devel
 BuildRequires:	intltool
-BuildRequires:	pkgconfig(btparser) => 0.16
+BuildRequires:	pkgconfig(satyr)
 BuildRequires:	pkgconfig(libreport) => 2.0.9
 BuildRequires:	pkgconfig(libreport-gtk) => 2.0.9
 BuildRequires:	gnome-common
@@ -76,7 +70,7 @@ Obsoletes:	abrt-plugin-sqlite3 < 1.1.18
 Obsoletes:	abrt-plugin-runapp < 1.1.18
 Obsoletes:	abrt-plugin-filetransfer < 1.1.18
 Obsoletes:	abrt-plugin-sosreport < 1.1.18
-BuildConflicts:	%{mklibname abrt 0} %{mklibname abrt -d} abrt
+#BuildConflicts:	%{mklibname abrt 0} %{mklibname abrt -d} abrt
 
 %description
 %{name} is a tool to help users to detect defects in applications and
@@ -227,10 +221,10 @@ from Xorg log.
 perl -pi -e 's!-Werror!-Wno-deprecated!' configure{.ac,} */*/Makefile*
 
 %build
-NOCONFIGURE=yes gnome-autogen.sh
 %define Werror_cflags %nil
-
-%configure2_5x \
+autoreconf -fi
+export PYTHON=%__python2
+%configure \
 %if !%{with_systemd}
     --without-systemdsystemunitdir \
 %endif
@@ -240,7 +234,7 @@ NOCONFIGURE=yes gnome-autogen.sh
     --disable-rpath \
     --enable-gtk3
 
-%make
+%make PYTHON_CFLAGS="`python2-config --cflags`" PYTHON_LIBS="`python2-config --libs`"
 
 %install
 
