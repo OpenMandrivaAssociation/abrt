@@ -129,7 +129,6 @@ analyzer plugin.
 Summary: %{name}'s upload addon
 Group: System/Libraries
 Requires: %{name} = %{version}-%{release}
-Requires: abrt-libs = %{version}-%{release}
 
 %description addon-upload-watch
 This package contains hook for uploaded problems.
@@ -171,7 +170,6 @@ vmcore files.
 Summary: %{name}'s pstore oops addon
 Group: System/Libraries
 Requires: %{name} = %{version}-%{release}
-Requires: abrt-libs = %{version}-%{release}
 Requires: abrt-addon-kerneloops
 Obsoletes: abrt-addon-uefioops < 2.1.7
 
@@ -247,7 +245,6 @@ Summary: ABRT DBus service
 Group: System/Libraries
 Requires: %{name} = %{version}-%{release}
 BuildRequires: polkit-1-devel
-Requires: abrt-libs = %{version}-%{release}
 
 %description dbus
 ABRT DBus service which provides org.freedesktop.problems API on dbus and
@@ -259,7 +256,7 @@ Group: System/Libraries
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-libs = %{version}-%{release}
 Requires: pygobject3
-Requires: dbus-python
+Requires: python-dbus
 Requires: libreport-python
 BuildRequires: python-nose
 BuildRequires: python-sphinx
@@ -274,7 +271,7 @@ Group: Documentation
 BuildArch: noarch
 BuildRequires: python-devel
 Requires: %{name} = %{version}-%{release}
-Requires: %{name}-python = %{version}-%{release}
+Requires: python-%{name} = %{version}-%{release}
 
 %description -n python-%{name}-doc
 Examples and documentation for ABRT Python API.
@@ -301,7 +298,7 @@ Group: Documentation
 BuildArch: noarch
 BuildRequires: python2-devel
 Requires: %{name} = %{version}-%{release}
-Requires: %{name}-python3 = %{version}-%{release}
+Requires: python2-%{name}= %{version}-%{release}
 
 %description -n python2-%{name}-doc
 Examples and documentation for ABRT Python 2 API.
