@@ -28,6 +28,9 @@ Patch2:		abrt_disable_gpgcheck.diff
 # (proyvind): port to rpm5 api
 Patch11:	abrt-2.3.0-rpm5.patch
 Patch12:	abrt-2.0.19-drop-getetxt-in-favour-of-intltool.patch
+BuildRequires:	pkgconfig(ice)
+BuildRequires:	pkgconfig(sm)
+BuildRequires:	pkgconfig(libxml-2.0)
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	libtool
@@ -38,12 +41,13 @@ BuildRequires:	curl-devel
 BuildRequires:	rpm-devel
 BuildRequires:	pkgconfig(sqlite3)
 BuildRequires:	desktop-file-utils
-#BuildRequires: nss-devel
+BuildRequires:	nss-devel
 BuildRequires:	libnotify-devel
 BuildRequires:	xmlrpc-c-devel
 BuildRequires:	xmlrpc-c
 #BuildRequires: file-devel
-BuildRequires:	python-devel
+BuildRequires:	pkgconfig(python)
+BuildRequires:	pkgconfig(python3)
 BuildRequires:	gettext
 BuildRequires:	polkit-1-devel
 BuildRequires:	libzip-devel, libtar-devel, bzip2-devel, zlib-devel
