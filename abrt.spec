@@ -60,6 +60,8 @@ BuildRequires:	libgnome-keyring-devel
 BuildRequires:	gettext-devel
 %if %{?with_systemd}
 BuildRequires:	systemd-units
+BuildRequires:	pkgconfig(libsystemd-journal)
+BuildRequires:	pkgconfig(libsystemd)
 %endif
 Requires:	%{lib_name} >= %{version}-%{release}
 Requires(pre):	rpm-helper
