@@ -1,5 +1,7 @@
 # (blino) FIXME: switch back to 1 when systemd is installable
 %define with_systemd 1
+%define _disable_ld_no_undefined 1
+
 
 %define lib_major 0
 %define lib_name %mklibname %{name} %{lib_major}
