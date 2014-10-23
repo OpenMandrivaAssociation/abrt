@@ -119,6 +119,26 @@ Requires:	%{name} = %{version}-%{release}
 This package contains hook for C/C++ crashed programs and %{name}'s C/C++
 analyzer plugin.
 
+%package addon-upload-watch
+Summary: %{name}'s upload addon
+Group: System/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: abrt-libs = %{version}-%{release}
+
+%description addon-upload-watch
+This package contains hook for uploaded problems.
+
+%package retrace-client
+Summary: %{name}'s retrace client
+Group: System/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: xz
+Requires: tar
+
+%description retrace-client
+This package contains the client application for Retrace server
+which is able to analyze C/C++ crashes remotely.
+
 %package addon-kerneloops
 Summary:	%{name}'s kerneloops addon
 Group:		System/Libraries
@@ -141,12 +161,44 @@ Requires:	abrt-addon-kerneloops
 This package contains plugin for collecting kernel crash information from
 vmcore files.
 
+%package addon-pstoreoops
+Summary: %{name}'s pstore oops addon
+Group: System/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: abrt-libs = %{version}-%{release}
+Requires: abrt-addon-kerneloops
+Obsoletes: abrt-addon-uefioops < 2.1.7
+
+%description addon-pstoreoops
+This package contains plugin for collecting kernel oopses from pstore storage.
+
+%package plugin-bodhi
+Summary: %{name}'s bodhi plugin
+BuildRequires: json-c-devel
+Group: System/Libraries
+Requires: %{name} = %{version}-%{release}
+BuildRequires: libreport-web-devel
+Obsoletes: libreport-plugin-bodhi > 0.0.1
+Provides: libreport-plugin-bodhi
+
+%description plugin-bodhi
+Search for a new updates in bodhi server.
+
 %package addon-python
 Summary:	%{name}'s addon for catching and analyzing Python exceptions
 Group:		System/Libraries
 Requires:	%{name} = %{version}-%{release}
 
 %description addon-python
+This package contains python hook and python analyzer plugin for handling
+uncaught exception in python programs.
+
+%package addon-python2
+Summary:        %{name}'s addon for catching and analyzing Python exceptions
+Group:          System/Libraries
+Requires:       %{name} = %{version}-%{release}
+
+%description addon-python2
 This package contains python hook and python analyzer plugin for handling
 uncaught exception in python programs.
 
@@ -184,6 +236,70 @@ Requires:	%{name}-gui
 %description desktop
 Virtual package to make easy default installation on desktop environments.
 
+%package dbus
+Summary: ABRT DBus service
+Group: System/Libraries
+Requires: %{name} = %{version}-%{release}
+BuildRequires: polkit-1-devel
+Requires: abrt-libs = %{version}-%{release}
+
+%description dbus
+ABRT DBus service which provides org.freedesktop.problems API on dbus and
+uses PolicyKit to authorize to access the problem data.
+
+%package -n python-%{name}
+Summary: ABRT Python API
+Group: System/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-libs = %{version}-%{release}
+Requires: pygobject3
+Requires: dbus-python
+Requires: libreport-python
+BuildRequires: python-nose
+BuildRequires: python-sphinx
+
+%description -n python-%{name}
+High-level API for querying, creating and manipulating
+problems handled by ABRT in Python.
+
+%package -n python-%{name}-doc
+Summary: ABRT Python API Documentation
+Group: Documentation
+BuildArch: noarch
+BuildRequires: python-devel
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-python = %{version}-%{release}
+
+%description -n python-%{name}-doc
+Examples and documentation for ABRT Python API.
+
+%package -n python2-%{name}
+Summary: ABRT Python 2 API
+Group: System/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-libs = %{version}-%{release}
+Requires: pygobject2
+Requires: python2-dbus
+Requires: libreport-python2
+BuildRequires: python2-nose
+BuildRequires: python2-sphinx
+BuildRequires: libreport-python2
+
+%description -n python2-%{name}
+High-level API for querying, creating and manipulating
+problems handled by ABRT in Python 2.
+
+%package -n python2-%{name}-doc
+Summary: ABRT Python API Documentation
+Group: Documentation
+BuildArch: noarch
+BuildRequires: python2-devel
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-python3 = %{version}-%{release}
+
+%description -n python2-%{name}-doc
+Examples and documentation for ABRT Python 2 API.
+
 %if 0
 %package retrace-server
 Summary:	%{name}'s retrace server using HTTP protocol
@@ -215,6 +331,16 @@ Requires:	%{name} = %{version}-%{release}
 This package contains plugin for collecting Xorg crash information 
 from Xorg log.
 
+%package console-notification
+Summary: ABRT console notification script
+Group: System/Configuration/Other
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-cli = %{version}-%{release}
+
+%description console-notification
+A small script which prints a count of detected problems when someone logs in
+to the shell
+
 %prep
 
 %setup -q
@@ -226,6 +352,7 @@ perl -pi -e 's!-Werror!-Wno-deprecated!' configure{.ac,} */*/Makefile*
 %define Werror_cflags %nil
 autoreconf -fi
 export PYTHON=%__python2
+export PYTHONDONTWRITEBYTECODE=True
 %configure \
 %if !%{with_systemd}
     --without-systemdsystemunitdir \
@@ -441,46 +568,54 @@ fi
 %doc README COPYING
 %if %{with systemd}
 /lib/systemd/system/abrtd.service
+%{_tmpfilesdir}/abrt.conf
 %else
 %{_initrddir}/abrtd
 %endif
 %{_sbindir}/%{name}d
 %{_sbindir}/%{name}-server
-%{_sbindir}/abrt-dbus
+%{_sbindir}/%{name}-auto-reporting
 %{_bindir}/%{name}-debuginfo-install
-%{_bindir}/abrt-action-generate-core-backtrace
-%{_bindir}/abrt-dedup-client
 %{_bindir}/%{name}-handle-upload
+%{_bindir}/abrt-action-notify
+%{_mandir}/man1/abrt-action-notify.1.*
+%{_bindir}/abrt-action-analyze-xorg
+%{_bindir}/abrt-action-analyze-python
 %{_bindir}/%{name}-action-save-package-data
-%{_bindir}/%{name}-retrace-client
 %{_bindir}/abrt-watch-log
 %{_libexecdir}/abrt-handle-event
+%{_libexecdir}/abrt-action-ureport
+%{_libexecdir}/abrt-action-generate-machine-id
 %config(noreplace) %{_sysconfdir}/%{name}/abrt.conf
+%{_datadir}/%{name}/conf.d/abrt.conf
 %config(noreplace) %{_sysconfdir}/%{name}/abrt-action-save-package-data.conf
-%config(noreplace) %{_sysconfdir}/%{name}/gpg_keys
+%{_datadir}/%{name}/conf.d/abrt-action-save-package-data.conf
+%config(noreplace) %{_sysconfdir}/%{name}/gpg_keys.conf
+%{_datadir}/%{name}/conf.d/gpg_keys.conf
+%{_mandir}/man5/gpg_keys.conf.5.*
 %config(noreplace) %{_sysconfdir}/libreport/events.d/abrt_event.conf
-%config(noreplace) %{_sysconfdir}/dbus-1/system.d/dbus-abrt.conf
+%{_mandir}/man5/abrt_event.conf.5.*
 %config(noreplace) %{_sysconfdir}/libreport/events.d/smart_event.conf
-%config(noreplace) %{_sysconfdir}/libreport/events.d/smolt_event.conf
-%{_sysconfdir}/libreport/events.d/ccpp_retrace_event.conf
-%{_sysconfdir}/libreport/events/analyze_RetraceServer.xml
+%{_mandir}/man5/smart_event.conf.5.*
 %ghost %attr(0666, -, -) %{_localstatedir}/run/%{name}/abrt.socket
 %ghost %attr(0644, -, -) %{_localstatedir}/run/%{name}d.pid
 #%dir %attr(0755, %{name}, %{name}) %{_localstatedir}/cache/%{name}
 %dir /var/run/%{name}
 %dir %{_sysconfdir}/%{name}
+%dir %{_sysconfdir}/%{name}/gpg_keys
 %dir %{_sysconfdir}/%{name}/plugins
 %{_mandir}/man1/abrt-handle-upload.1.*
 %{_mandir}/man1/abrt-server.1.*
 %{_mandir}/man1/abrt-action-save-package-data.1.*
-%{_mandir}/man1/abrt-retrace-client.1.*
-%{_mandir}/man1/abrt-cli.1.*
+%{_mandir}/man1/abrt-watch-log.1.*
+%{_mandir}/man1/abrt-action-analyze-python.1*
+%{_mandir}/man1/abrt-action-analyze-xorg.1.*
+%{_mandir}/man1/abrt-auto-reporting.1.*
 %{_mandir}/man8/abrtd.8.*
-%{_mandir}/man8/abrt-dbus.8.*
 %{_mandir}/man5/abrt.conf.5.*
 %{_mandir}/man5/abrt-action-save-package-data.conf.5.*
-%{_datadir}/dbus-1/system-services/org.freedesktop.problems.service
-%{_datadir}/polkit-1/actions/abrt_polkit.policy
+
+%{_datadir}/augeas/lenses/abrt.aug
 
 %files -n %{lib_name}
 %{_libdir}/libabrt*.so.*
@@ -490,26 +625,35 @@ fi
 %{_libdir}/libabrt*.so
 #FIXME: this should go to libreportgtk-devel package
 %{_libdir}/pkgconfig/%{name}.pc
+%{_libdir}/pkgconfig/abrt_gui.pc
 
 %files gui
-%{_bindir}/%{name}-gui
-%{_datadir}/%{name}
-%{_datadir}/applications/%{name}.desktop
-%{_datadir}/icons/hicolor/*/*/*.png
+%{_datadir}/icons/hicolor/*/apps/*
+%{_datadir}/icons/hicolor/*/status/*
+%{_datadir}/abrt/icons/hicolor/*/status/*
+%{_datadir}/%{name}/ui/*
+%{_bindir}/system-config-abrt
 %{_bindir}/%{name}-applet
 %{_sysconfdir}/xdg/autostart/%{name}-applet.desktop
+%{_mandir}/man1/abrt-applet.1*
+%{_mandir}/man1/system-config-abrt.1*
 
 %files addon-ccpp
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/CCpp.conf
+%{_datadir}/%{name}/conf.d/plugins/CCpp.conf
 %{_sysconfdir}/libreport/events.d/ccpp_event.conf
+%{_mandir}/man5/ccpp_event.conf.5.*
 %{_sysconfdir}/libreport/events.d/gconf_event.conf
+%{_mandir}/man5/gconf_event.conf.5.*
 %{_sysconfdir}/libreport/events.d/vimrc_event.conf
-%{_sysconfdir}/libreport/events/analyze_LocalGDB.xml
-%{_sysconfdir}/libreport/events/collect_xsession_errors.xml
-%{_sysconfdir}/libreport/events/collect_Smolt.xml
-%{_sysconfdir}/libreport/events/collect_GConf.xml
-%{_sysconfdir}/libreport/events/collect_vimrc_user.xml
-%{_sysconfdir}/libreport/events/collect_vimrc_system.xml
+%{_mandir}/man5/vimrc_event.conf.5.*
+%{_datadir}/libreport/events/analyze_CCpp.xml
+%{_datadir}/libreport/events/analyze_LocalGDB.xml
+%{_datadir}/libreport/events/collect_xsession_errors.xml
+%{_datadir}/libreport/events/collect_GConf.xml
+%{_datadir}/libreport/events/collect_vimrc_user.xml
+%{_datadir}/libreport/events/collect_vimrc_system.xml
+%{_datadir}/libreport/events/post_report.xml
 %dir %attr(0775, abrt, abrt) %{_localstatedir}/cache/abrt-di
 %if %{with systemd}
 /lib/systemd/system/abrt-ccpp.service
@@ -517,15 +661,20 @@ fi
 %{_initrddir}/abrt-ccpp
 %endif
 %{_libexecdir}/abrt-hook-ccpp
+%{_libexecdir}/abrt-gdb-exploitable
+%attr(6755, abrt, abrt) %{_libexecdir}/abrt-action-install-debuginfo-to-abrt-cache
 %{_sysconfdir}/profile.d/00abrt.*
 %{_bindir}/abrt-action-analyze-c
 %{_bindir}/abrt-action-trim-files
 %{_bindir}/abrt-action-analyze-core
-%{_bindir}/abrt-action-list-dsos
-%attr(2755, abrt, abrt) %{_bindir}/abrt-action-install-debuginfo
-%attr(4755, abrt, abrt) %{_libexecdir}/abrt-action-install-debuginfo-to-abrt-cache
+%{_bindir}/abrt-action-analyze-vulnerability
+%{_bindir}/abrt-action-install-debuginfo
 %{_bindir}/abrt-action-generate-backtrace
+%{_bindir}/abrt-action-generate-core-backtrace
 %{_bindir}/abrt-action-analyze-backtrace
+%{_bindir}/abrt-action-list-dsos
+%{_bindir}/abrt-action-perform-ccpp-analysis
+%{_bindir}/abrt-action-analyze-ccpp-local
 %{_sbindir}/abrt-install-ccpp-hook
 %{_mandir}/man*/abrt-action-analyze-c.*
 %{_mandir}/man*/abrt-action-trim-files.*
@@ -533,22 +682,57 @@ fi
 %{_mandir}/man*/abrt-action-generate-core-backtrace.*
 %{_mandir}/man*/abrt-action-analyze-backtrace.*
 %{_mandir}/man*/abrt-action-list-dsos.*
-%{_mandir}/man1/abrt-install-ccpp-hook.*
+%{_mandir}/man*/abrt-install-ccpp-hook.*
+%{_mandir}/man*/abrt-action-install-debuginfo.*
+%{_mandir}/man*/abrt-action-analyze-ccpp-local.*
+%{_mandir}/man*/abrt-action-analyze-core.*
+%{_mandir}/man*/abrt-action-analyze-vulnerability.*
+%{_mandir}/man*/abrt-action-perform-ccpp-analysis.*
+%{_mandir}/man5/abrt-CCpp.conf.5.*
+
+%files addon-upload-watch
+%defattr(-,root,root,-)
+%{_sbindir}/abrt-upload-watch
+%if %{with systemd}
+%{_unitdir}/abrt-upload-watch.service
+%else
+%{_initrddir}/abrt-upload-watch
+%endif
+%{_mandir}/man*/abrt-upload-watch.*
+
+%files retrace-client
+%{_bindir}/abrt-retrace-client
+%{_mandir}/man1/abrt-retrace-client.1.*
+%config(noreplace) %{_sysconfdir}/libreport/events.d/ccpp_retrace_event.conf
+%{_mandir}/man5/ccpp_retrace_event.conf.5.*
+%{_datadir}/libreport/events/analyze_RetraceServer.xml
 
 %files addon-kerneloops
 %config(noreplace) %{_sysconfdir}/libreport/events.d/koops_event.conf
+%{_datadir}/%{name}/conf.d/plugins/oops.conf
+%{_mandir}/man5/koops_event.conf.5.*
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/oops.conf
 %if %{with systemd}
 /lib/systemd/system/abrt-oops.service
 %else
 %{_initrddir}/abrt-oops
 %endif
 %{_bindir}/abrt-dump-oops
+%{_bindir}/abrt-dump-journal-oops
 %{_bindir}/abrt-action-analyze-oops
+%{_bindir}/abrt-action-save-kernel-data
+%{_mandir}/man1/abrt-dump-oops.1*
+%{_mandir}/man1/abrt-dump-journal-oops.1*
 %{_mandir}/man1/abrt-action-analyze-oops.1*
+%{_mandir}/man1/abrt-action-save-kernel-data.1*
+%{_mandir}/man5/abrt-oops.conf.5*
 
 %files addon-vmcore
 %config(noreplace) %{_sysconfdir}/libreport/events.d/vmcore_event.conf
-%{_sysconfdir}/libreport/events/analyze_VMcore.xml
+%{_mandir}/man5/vmcore_event.conf.5.*
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/vmcore.conf
+%{_datadir}/%{name}/conf.d/plugins/vmcore.conf
+%{_datadir}/libreport/events/analyze_VMcore.xml
 %if %{with systemd}
 /lib/systemd/system/abrt-vmcore.service
 %else
@@ -556,28 +740,62 @@ fi
 %endif
 %{_sbindir}/abrt-harvest-vmcore
 %{_bindir}/abrt-action-analyze-vmcore
+%{_bindir}/abrt-action-check-oops-for-hw-error
+%{_mandir}/man1/abrt-harvest-vmcore.1*
+%{_mandir}/man5/abrt-vmcore.conf.5*
 %{_mandir}/man1/abrt-action-analyze-vmcore.1*
+%{_mandir}/man1/abrt-action-check-oops-for-hw-error.1*
 
 %files cli
 %{_bindir}/abrt-cli
+%{_mandir}/man1/abrt-cli.1.*
+
+%files addon-pstoreoops
+%defattr(-,root,root,-)
+%if %{with systemd}
+%{_unitdir}/abrt-pstoreoops.service
+%else
+%{_initrddir}/abrt-pstoreoops
+%endif
+%{_sbindir}/abrt-harvest-pstoreoops
+%{_bindir}/abrt-merge-pstoreoops
+%{_mandir}/man1/abrt-harvest-pstoreoops.1*
+%{_mandir}/man1/abrt-merge-pstoreoops.1*
 
 %files addon-python
 %dir %{_sysconfdir}/%{name}/plugins
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/python3.conf
+%{_datadir}/%{name}/conf.d/plugins/python3.conf
+%{_sysconfdir}/libreport/events.d/python3_event.conf
+%{_mandir}/man5/python3_event.conf.5.*
+%{_mandir}/man5/abrt-python3.conf.5.*
+%{py_platsitedir}/abrt*.py*
+%{py_platsitedir}/*.pth
+
+%files addon-python2
+%dir %{_sysconfdir}/%{name}/plugins
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/python.conf
+%{_datadir}/%{name}/conf.d/plugins/python.conf
 %{_sysconfdir}/libreport/events.d/python_event.conf
-%{_bindir}/abrt-action-analyze-python
-%{_mandir}/man1/abrt-action-analyze-python.1*
-%{py_puresitedir}/abrt*.py*
-%{py_puresitedir}/*.pth
+%{_mandir}/man5/python_event.conf.5.*
+%{_mandir}/man5/abrt-python.conf.5.*
+%{py2_platsitedir}/abrt*.py*
+%{py2_platsitedir}/*.pth
+
 
 %files addon-xorg
 %config(noreplace) %{_sysconfdir}/libreport/events.d/xorg_event.conf
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/xorg.conf
+%{_datadir}/%{name}/conf.d/plugins/xorg.conf
 %if %{with systemd}
 %{_unitdir}/abrt-xorg.service
 %else
 %{_initrddir}/abrt-xorg
 %endif
 %{_bindir}/abrt-dump-xorg
+%{_mandir}/man1/abrt-dump-xorg.1*
+%{_mandir}/man5/xorg_event.conf.5.*
+%{_mandir}/man5/abrt-xorg.conf.5.*
 
 %files desktop
 
@@ -599,3 +817,48 @@ fi
 %{_datadir}/abrt-retrace/plugins/*.py*
 %{_infodir}/abrt-retrace-server*
 %endif
+
+%files plugin-bodhi
+%defattr(-,root,root,-)
+%{_bindir}/abrt-bodhi
+%{_mandir}/man1/abrt-bodhi.1.*
+
+%files dbus
+%{_sbindir}/abrt-dbus
+%{_sbindir}/abrt-configuration
+%{_mandir}/man8/abrt-dbus.8.*
+%{_mandir}/man8/abrt-configuration.8.*
+%config(noreplace) %{_sysconfdir}/dbus-1/system.d/dbus-abrt.conf
+%{_datadir}/dbus-1/interfaces/org.freedesktop.Problems.xml
+%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.xml
+%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.abrt.xml
+%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.ccpp.xml
+%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.oops.xml
+%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.python.xml
+%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.vmcore.xml
+%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.xorg.xml
+%{_datadir}/dbus-1/system-services/org.freedesktop.problems.service
+%{_datadir}/dbus-1/system-services/com.redhat.problems.configuration.service
+%{_datadir}/polkit-1/actions/abrt_polkit.policy
+%dir %{_defaultdocdir}/%{name}-dbus-%{version}/
+%dir %{_defaultdocdir}/%{name}-dbus-%{version}/html/
+%{_defaultdocdir}/%{name}-dbus-%{version}/html/*.html
+%{_defaultdocdir}/%{name}-dbus-%{version}/html/*.css
+
+%files -n python-%{name}
+%{py_platsitedir}/problem/
+%{_mandir}/man5/abrt-python3.5.*
+
+%files -n python-%{name}-doc
+%{py_puresitedir}/problem_examples
+
+%files -n python2-%{name}
+%{py2_platsitedir}/problem/
+%{_mandir}/man5/abrt-python.5.*
+
+%files -n python2-%{name}-doc
+%{py2_puresitedir}/problem_examples
+
+%files console-notification
+%config(noreplace) %{_sysconfdir}/profile.d/abrt-console-notification.sh
+
