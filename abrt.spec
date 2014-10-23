@@ -12,7 +12,7 @@
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
 Version:	2.3.0
-Release:	1
+Release:	2
 License:	GPLv2+
 Group:		System/Libraries
 URL:		https://fedorahosted.org/abrt/
@@ -252,7 +252,6 @@ uses PolicyKit to authorize to access the problem data.
 Summary: ABRT Python API
 Group: System/Libraries
 Requires: %{name} = %{version}-%{release}
-Requires: %{name}-libs = %{version}-%{release}
 Requires: python-gi
 Requires: python-dbus
 Requires: libreport-python
@@ -278,7 +277,6 @@ Examples and documentation for ABRT Python API.
 Summary: ABRT Python 2 API
 Group: System/Libraries
 Requires: %{name} = %{version}-%{release}
-Requires: %{name}-libs = %{version}-%{release}
 Requires: python-gobject
 Requires: python2-dbus
 Requires: libreport-python2
