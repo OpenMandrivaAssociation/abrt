@@ -106,9 +106,7 @@ Summary:	%{name}'s gui
 Group:		Graphical desktop/Other
 Requires:	%{name} = %{version}-%{release}
 Requires:	python-dbus
-Requires:	pygtk2.0
-Requires:	pygtk2.0-libglade
-Requires:	python-gobject
+Requires:	python-gi
 ##Requires: gnome-python-desktop
 Requires:	libreport-gtk
 
@@ -255,7 +253,7 @@ Summary: ABRT Python API
 Group: System/Libraries
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-libs = %{version}-%{release}
-Requires: pygobject3
+Requires: python-gi
 Requires: python-dbus
 Requires: libreport-python
 BuildRequires: python-nose
@@ -281,7 +279,7 @@ Summary: ABRT Python 2 API
 Group: System/Libraries
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-libs = %{version}-%{release}
-Requires: pygobject2
+Requires: python-gobject
 Requires: python2-dbus
 Requires: libreport-python2
 BuildRequires: python2-nose
@@ -298,7 +296,7 @@ Group: Documentation
 BuildArch: noarch
 BuildRequires: python2-devel
 Requires: %{name} = %{version}-%{release}
-Requires: python2-%{name}= %{version}-%{release}
+Requires: python2-%{name} = %{version}-%{release}
 
 %description -n python2-%{name}-doc
 Examples and documentation for ABRT Python 2 API.
