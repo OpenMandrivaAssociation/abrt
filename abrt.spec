@@ -12,7 +12,7 @@
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
 Version:	2.3.0
-Release:	3
+Release:	4
 License:	GPLv2+
 Group:		System/Libraries
 URL:		https://fedorahosted.org/abrt/
@@ -415,7 +415,7 @@ rm -f %{buildroot}%{_bindir}/%{name}-action-rhtsupport
 rm -f %{buildroot}%{_infodir}/dir
 
 %pre
-%_pre_useradd %{name} %{_sysconfdir}/%{name} /bin/nologin
+%_pre_useradd %{name} %{_sysconfdir}/%{name} /sbin/nologin
 %_pre_groupadd %{name} %{name}
 
 %post
