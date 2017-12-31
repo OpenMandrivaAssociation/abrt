@@ -1,10 +1,8 @@
-diff --git a/src/daemon/abrt-action-save-package-data.conf b/src/daemon/abrt-action-save-package-data.conf
-index 18be125..62c332a 100644
---- a/src/daemon/abrt-action-save-package-data.conf
-+++ b/src/daemon/abrt-action-save-package-data.conf
-@@ -3,7 +3,7 @@
- # the list of public keys used to check the signature is
- # in the file gpg_keys
+--- abrt-2.10.5/src/daemon/abrt-action-save-package-data.conf.0002~	2017-12-31 04:48:03.074094851 +0100
++++ abrt-2.10.5/src/daemon/abrt-action-save-package-data.conf	2017-12-31 04:48:25.050150083 +0100
+@@ -10,7 +10,7 @@
+ # Product Signing (GPG) Keys:
+ # https://access.redhat.com/security/team/key
  #
 -OpenGPGCheck = yes
 +OpenGPGCheck = no

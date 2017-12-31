@@ -1,6 +1,7 @@
 # (blino) FIXME: switch back to 1 when systemd is installable
 %define with_systemd 1
 %define _disable_ld_no_undefined 1
+%bcond_with python2
 
 
 %define lib_major 0
@@ -11,12 +12,12 @@
 
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
-Version:	2.3.0
-Release:	8
+Version:	2.10.5
+Release:	1
 License:	GPLv2+
 Group:		System/Libraries
-URL:		https://fedorahosted.org/abrt/
-Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
+URL:		https://github.com/abrt/abrt
+Source0:	https://github.com/abrt/abrt/archive/%{version}.tar.gz
 Source1:	abrt.init
 Source2:	00abrt.sh
 Source3:	00abrt.csh
@@ -46,7 +47,9 @@ BuildRequires:	libnotify-devel
 BuildRequires:	xmlrpc-c-devel
 BuildRequires:	xmlrpc-c
 #BuildRequires: file-devel
+%if %{with python2}
 BuildRequires:	pkgconfig(python)
+%endif
 BuildRequires:	pkgconfig(python3)
 BuildRequires:	gettext
 BuildRequires:	polkit-1-devel
@@ -64,7 +67,6 @@ BuildRequires:	libgnome-keyring-devel
 BuildRequires:	gettext-devel
 %if %{?with_systemd}
 BuildRequires:	systemd-units
-BuildRequires:	pkgconfig(libsystemd-journal)
 BuildRequires:	pkgconfig(libsystemd)
 %endif
 Requires:	%{lib_name} >= %{version}-%{release}
@@ -273,6 +275,7 @@ Requires: python-%{name} = %{version}-%{release}
 %description -n python-%{name}-doc
 Examples and documentation for ABRT Python API.
 
+%if %{with python2}
 %package -n python2-%{name}
 Summary: ABRT Python 2 API
 Group: System/Libraries
@@ -298,6 +301,7 @@ Requires: python2-%{name} = %{version}-%{release}
 
 %description -n python2-%{name}-doc
 Examples and documentation for ABRT Python 2 API.
+%endif
 
 %if 0
 %package retrace-server
@@ -350,7 +354,9 @@ perl -pi -e 's!-Werror!-Wno-deprecated!' configure{.ac,} */*/Makefile*
 %build
 %define Werror_cflags %nil
 autoreconf -fi
+%if %{with python2}
 export PYTHON=%__python2
+%endif
 export PYTHONDONTWRITEBYTECODE=True
 %configure \
 %if !%{with_systemd}
@@ -360,9 +366,15 @@ export PYTHONDONTWRITEBYTECODE=True
     --with-systemdsystemunitdir=/lib/systemd/system \
 %endif
     --disable-rpath \
-    --enable-gtk3
+    --enable-gtk3 \
+%if ! %{with python2}
+	--without-python2
+%endif
 
-%make PYTHON_CFLAGS="`python2-config --cflags`" PYTHON_LIBS="`python2-config --libs`"
+%make \
+%if %{with python2}
+	PYTHON_CFLAGS="`python2-config --cflags`" PYTHON_LIBS="`python2-config --libs`"
+%endif
 
 %install
 
@@ -771,6 +783,7 @@ fi
 %{py_platsitedir}/abrt*.py*
 %{py_platsitedir}/*.pth
 
+%if %{with python2}
 %files addon-python2
 %dir %{_sysconfdir}/%{name}/plugins
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/python.conf
@@ -780,7 +793,7 @@ fi
 %{_mandir}/man5/abrt-python.conf.5.*
 %{py2_platsitedir}/abrt*.py*
 %{py2_platsitedir}/*.pth
-
+%endif
 
 %files addon-xorg
 %config(noreplace) %{_sysconfdir}/libreport/events.d/xorg_event.conf
@@ -846,18 +859,19 @@ fi
 
 %files -n python-%{name}
 %{py_platsitedir}/problem/
-%{_mandir}/man5/abrt-python3.5.*
+%{_mandir}/man5/abrt-python3.*
 
 %files -n python-%{name}-doc
 %{py_puresitedir}/problem_examples
 
+%if %{with python2}
 %files -n python2-%{name}
 %{py2_platsitedir}/problem/
 %{_mandir}/man5/abrt-python.5.*
 
 %files -n python2-%{name}-doc
 %{py2_puresitedir}/problem_examples
+%endif
 
 %files console-notification
 %config(noreplace) %{_sysconfdir}/profile.d/abrt-console-notification.sh
-
