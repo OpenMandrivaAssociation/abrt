@@ -1,0 +1,28 @@
+diff -up abrt-2.10.10/configure.ac.omv~ abrt-2.10.10/configure.ac
+--- abrt-2.10.10/configure.ac.omv~	2018-06-17 22:25:52.542380467 +0200
++++ abrt-2.10.10/configure.ac	2018-06-17 22:26:04.352379817 +0200
+@@ -193,10 +193,10 @@ ABRT_PARSE_WITH([pythontests]))
+ [if test -z "$NO_PYTHONTESTS"]
+ [then]
+     AM_CONDITIONAL(HAVE_PYTHON_NOSE, true)
+-    AC_PATH_PROG([PYTHON_NOSE], [nosetests-3], [no])
++    AC_PATH_PROG([PYTHON_NOSE], [nosetests-3.7], [no])
+     [if test "$PYTHON_NOSE" = "no"]
+     [then]
+-        [echo "The nosetests-3 program was not found in the search path. Please ensure"]
++        [echo "The nosetests-3.7 program was not found in the search path. Please ensure"]
+         [echo "that it is installed and its directory is included in the search path or"]
+         [echo "pass --without-pythontests to ./configure."]
+         [echo "Then run configure again before attempting to build ABRT."]
+diff -up abrt-2.10.10/src/python-problem/doc/Makefile.am.omv~ abrt-2.10.10/src/python-problem/doc/Makefile.am
+--- abrt-2.10.10/src/python-problem/doc/Makefile.am.omv~	2018-06-17 22:27:45.533374241 +0200
++++ abrt-2.10.10/src/python-problem/doc/Makefile.am	2018-06-17 22:27:51.296373924 +0200
+@@ -8,7 +8,7 @@ SPHINXBUILD   = sphinx-build
+ endif
+ # prefer Python3 sphinx
+ if BUILD_PYTHON3
+-SPHINXBUILD   = sphinx-build-3
++SPHINXBUILD   = sphinx-build
+ endif
+ PAPER         =
+ BUILDDIR      = _build

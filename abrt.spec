@@ -1,5 +1,6 @@
 # (blino) FIXME: switch back to 1 when systemd is installable
 %define with_systemd 1
+%define _disable_rebuild_configure 1
 %define _disable_ld_no_undefined 1
 %bcond_with python2
 
@@ -12,8 +13,8 @@
 
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
-Version:	2.10.5
-Release:	2
+Version:	2.10.10
+Release:	1
 License:	GPLv2+
 Group:		System/Libraries
 URL:		https://github.com/abrt/abrt
@@ -24,11 +25,9 @@ Source3:	00abrt.csh
 Source4:	abrt-debuginfo-install
 Source5:	abrt-ccpp.init
 Source6:	abrt-oops.init
+Patch1:		abrt-2.10.10-compile.patch
 # (fc) disable package signature check
 Patch2:		abrt_disable_gpgcheck.diff
-# (proyvind): port to rpm5 api
-Patch11:	abrt-2.3.0-rpm5.patch
-Patch12:	abrt-2.0.19-drop-getetxt-in-favour-of-intltool.patch
 BuildRequires:	pkgconfig(ice)
 BuildRequires:	pkgconfig(sm)
 BuildRequires:	pkgconfig(libxml-2.0)
@@ -43,6 +42,7 @@ BuildRequires:	rpm-devel
 BuildRequires:	pkgconfig(sqlite3)
 BuildRequires:	desktop-file-utils
 BuildRequires:	nss-devel
+BuildRequires:	systemd
 BuildRequires:	libnotify-devel
 BuildRequires:	xmlrpc-c-devel
 BuildRequires:	xmlrpc-c
@@ -346,14 +346,14 @@ to the shell
 
 %prep
 
-%setup -q
-%apply_patches
+%autosetup -p1
 # (tv)) disable -Werror:
 perl -pi -e 's!-Werror!-Wno-deprecated!' configure{.ac,} */*/Makefile*
+[ -e autogen.sh ] && ./autogen.sh
 
 %build
 %define Werror_cflags %nil
-autoreconf -fi
+#autoreconf -fi
 %if %{with python2}
 export PYTHON=%__python2
 %endif
@@ -425,6 +425,10 @@ rm -f %{buildroot}%{_bindir}/%{name}-action-rhtsupport
 
 # After everything is installed, remove info dir
 rm -f %{buildroot}%{_infodir}/dir
+
+# systemd units should go to the right place
+mkdir -p %{buildroot}/lib
+mv %{buildroot}%{_prefix}/lib/systemd %{buildroot}/lib
 
 %pre
 %_pre_useradd %{name} %{_sysconfdir}/%{name} /sbin/nologin
@@ -576,7 +580,7 @@ fi
 %endif
 
 %files -f %{name}.lang
-%doc README COPYING
+%license COPYING
 %if %{with systemd}
 /lib/systemd/system/abrtd.service
 %{_tmpfilesdir}/abrt.conf
@@ -613,7 +617,7 @@ fi
 #%dir %attr(0755, %{name}, %{name}) %{_localstatedir}/cache/%{name}
 %dir /var/run/%{name}
 %dir %{_sysconfdir}/%{name}
-%dir %{_sysconfdir}/%{name}/gpg_keys
+%ghost %{_sysconfdir}/%{name}/gpg_keys
 %dir %{_sysconfdir}/%{name}/plugins
 %{_mandir}/man1/abrt-handle-upload.1.*
 %{_mandir}/man1/abrt-server.1.*
@@ -625,7 +629,38 @@ fi
 %{_mandir}/man8/abrtd.8.*
 %{_mandir}/man5/abrt.conf.5.*
 %{_mandir}/man5/abrt-action-save-package-data.conf.5.*
-
+%{_sysconfdir}/bash_completion.d/abrt.bash_completion
+%{_sysconfdir}/dbus-1/system.d/org.freedesktop.problems.daemon.conf
+/lib/systemd/system/abrt-coredump-helper.service
+/lib/systemd/system/abrt-journal-core.service
+%{_bindir}/abrt
+%{_bindir}/abrt-action-check-oops-for-alt-component
+%{_bindir}/abrt-action-find-bodhi-update
+%{_bindir}/abrt-dump-journal-core
+%{_bindir}/abrt-dump-journal-xorg
+%{_libexecdir}/abrt-action-save-container-data
+%{_datadir}/abrt/conf.d/plugins/CCpp_Atomic.conf
+%doc %{_docdir}/abrt/README.md
+%{_datadir}/libreport/events/analyze_BodhiUpdates.xml
+%{_sysconfdir}/libreport/events.d/abrt_dbus_event.conf
+%{_sysconfdir}/libreport/events.d/bodhi_event.conf
+%{_sysconfdir}/libreport/events.d/machine-id_event.conf
+%{_sysconfdir}/libreport/events.d/sosreport_event.conf
+/lib/systemd/catalog/abrt_ccpp.catalog
+%{_sysconfdir}/libreport/plugins/catalog_ccpp_format.conf
+%{_sysconfdir}/libreport/plugins/catalog_journal_ccpp_format.conf
+/lib/systemd/catalog/abrt_koops.catalog
+%{_sysconfdir}/libreport/plugins/catalog_koops_format.conf
+/lib/systemd/catalog/abrt_python3.catalog
+%{_sysconfdir}/libreport/plugins/catalog_python3_format.conf
+/lib/systemd/catalog/abrt_vmcore.catalog
+%{_sysconfdir}/libreport/plugins/catalog_vmcore_format.conf
+/lib/systemd/catalog/abrt_xorg.catalog
+%{_sysconfdir}/libreport/plugins/catalog_xorg_format.conf
+%{_mandir}/man1/abrt-action-find-bodhi-update.1*
+%{_mandir}/man1/abrt-dump-journal-core.1*
+%{_mandir}/man1/abrt-dump-journal-xorg.1*
+%{_mandir}/man1/abrt.1*
 %{_datadir}/augeas/lenses/abrt.aug
 
 %files -n %{lib_name}
@@ -651,6 +686,7 @@ fi
 
 %files addon-ccpp
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/CCpp.conf
+%config(noreplace) %{_sysconfdir}/abrt/plugins/CCpp_Atomic.conf
 %{_datadir}/%{name}/conf.d/plugins/CCpp.conf
 %{_sysconfdir}/libreport/events.d/ccpp_event.conf
 %{_mandir}/man5/ccpp_event.conf.5.*
@@ -731,11 +767,9 @@ fi
 %{_bindir}/abrt-dump-oops
 %{_bindir}/abrt-dump-journal-oops
 %{_bindir}/abrt-action-analyze-oops
-%{_bindir}/abrt-action-save-kernel-data
 %{_mandir}/man1/abrt-dump-oops.1*
 %{_mandir}/man1/abrt-dump-journal-oops.1*
 %{_mandir}/man1/abrt-action-analyze-oops.1*
-%{_mandir}/man1/abrt-action-save-kernel-data.1*
 %{_mandir}/man5/abrt-oops.conf.5*
 
 %files addon-vmcore
@@ -760,6 +794,8 @@ fi
 %files cli
 %{_bindir}/abrt-cli
 %{_mandir}/man1/abrt-cli.1.*
+%{python_sitearch}/abrtcli
+
 
 %files addon-pstoreoops
 %defattr(-,root,root,-)
@@ -841,7 +877,6 @@ fi
 %{_mandir}/man8/abrt-dbus.8.*
 %{_mandir}/man8/abrt-configuration.8.*
 %config(noreplace) %{_sysconfdir}/dbus-1/system.d/dbus-abrt.conf
-%{_datadir}/dbus-1/interfaces/org.freedesktop.Problems.xml
 %{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.xml
 %{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.abrt.xml
 %{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.ccpp.xml
@@ -849,6 +884,10 @@ fi
 %{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.python.xml
 %{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.vmcore.xml
 %{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.xorg.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.Entry.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.Session.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.Task.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.xml
 %{_datadir}/dbus-1/system-services/org.freedesktop.problems.service
 %{_datadir}/dbus-1/system-services/com.redhat.problems.configuration.service
 %{_datadir}/polkit-1/actions/abrt_polkit.policy
@@ -859,6 +898,7 @@ fi
 
 %files -n python-%{name}
 %{py_platsitedir}/problem/
+%{py_platsitedir}/__pycache__/abrt*
 %{_mandir}/man5/abrt-python3.*
 
 %files -n python-%{name}-doc
