@@ -37,6 +37,7 @@ BuildRequires:	libtool
 BuildRequires:	dbus-devel
 BuildRequires:	pkgconfig(dbus-glib-1)
 BuildRequires:	pkgconfig(gtk+-3.0)
+BuildRequires:	pkgconfig(gsettings-desktop-schemas) >= 3.15.1
 BuildRequires:	curl-devel
 BuildRequires:	rpm-devel
 BuildRequires:	pkgconfig(sqlite3)
