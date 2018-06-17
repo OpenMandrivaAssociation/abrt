@@ -40,6 +40,7 @@ BuildRequires:	pkgconfig(gtk+-3.0)
 BuildRequires:	pkgconfig(gsettings-desktop-schemas) >= 3.15.1
 BuildRequires:	curl-devel
 BuildRequires:	rpm-devel
+BuildRequires:	pkgconfig(libselinux)
 BuildRequires:	pkgconfig(sqlite3)
 BuildRequires:	desktop-file-utils
 BuildRequires:	nss-devel
