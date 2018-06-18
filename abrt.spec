@@ -42,6 +42,7 @@ BuildRequires:	curl-devel
 BuildRequires:	rpm-devel
 BuildRequires:	pkgconfig(libselinux)
 BuildRequires:	pkgconfig(sqlite3)
+BuildRequires:	pkgconfig(libcap)
 BuildRequires:	desktop-file-utils
 BuildRequires:	nss-devel
 BuildRequires:	systemd
