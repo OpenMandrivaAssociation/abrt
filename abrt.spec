@@ -51,6 +51,7 @@ BuildRequires:	systemd
 BuildRequires:	libnotify-devel
 BuildRequires:	xmlrpc-c-devel
 BuildRequires:	xmlrpc-c
+BuildRequires:	augeas
 #BuildRequires: file-devel
 %if %{with python2}
 BuildRequires:	pkgconfig(python)
