@@ -44,6 +44,7 @@ BuildRequires:	rpm-devel
 BuildRequires:	pkgconfig(libselinux)
 BuildRequires:	pkgconfig(sqlite3)
 BuildRequires:	pkgconfig(libcap)
+BuildRequires:	pkgconfig(libsoup-2.4)
 BuildRequires:	desktop-file-utils
 BuildRequires:	nss-devel
 BuildRequires:	systemd
