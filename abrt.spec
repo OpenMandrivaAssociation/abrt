@@ -13,8 +13,8 @@
 
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
-Version:	2.10.10
-Release:	3
+Version:	2.12.0
+Release:	1
 License:	GPLv2+
 Group:		System/Libraries
 URL:		https://github.com/abrt/abrt
@@ -28,6 +28,7 @@ Source6:	abrt-oops.init
 Patch1:		abrt-2.10.10-compile.patch
 # (fc) disable package signature check
 Patch2:		abrt_disable_gpgcheck.diff
+Patch3:		abrt-2.12.0-sphinx-build.patch
 BuildRequires:	pkgconfig(ice)
 BuildRequires:	pkgconfig(sm)
 BuildRequires:	pkgconfig(libxml-2.0)
@@ -59,7 +60,7 @@ BuildRequires:	polkit-1-devel
 BuildRequires:	libzip-devel, libtar-devel, bzip2-devel, zlib-devel
 BuildRequires:	intltool
 BuildRequires:	pkgconfig(satyr)
-BuildRequires:	pkgconfig(libreport) => 2.0.9
+BuildRequires:	pkgconfig(libreport) => 2.10.0
 BuildRequires:	pkgconfig(libreport-gtk) => 2.0.9
 BuildRequires:	gnome-common
 BuildRequires:	bison
@@ -414,7 +415,7 @@ install -m0644 %SOURCE2 %SOURCE3 %{buildroot}%{_sysconfdir}/profile.d/
 
 desktop-file-install \
         --dir %{buildroot}%{_sysconfdir}/xdg/autostart \
-        src/applet/%{name}-applet.desktop
+        src/applet/org.freedesktop.problems.applet.desktop
 
 # replace with our own version
 cat %{SOURCE4} > %{buildroot}/usr/bin/%{name}-debuginfo-install
@@ -683,7 +684,7 @@ fi
 %{_datadir}/%{name}/ui/*
 %{_bindir}/system-config-abrt
 %{_bindir}/%{name}-applet
-%{_sysconfdir}/xdg/autostart/%{name}-applet.desktop
+%{_sysconfdir}/xdg/autostart/org.freedesktop.problems.applet.desktop
 %{_mandir}/man1/abrt-applet.1*
 %{_mandir}/man1/system-config-abrt.1*
 
@@ -884,13 +885,14 @@ fi
 %{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.abrt.xml
 %{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.ccpp.xml
 %{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.oops.xml
-%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.python.xml
 %{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.vmcore.xml
 %{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.xorg.xml
+%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.python3.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.Entry.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.Session.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.Task.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.xml
+%{_datadir}/dbus-1/services/org.freedesktop.problems.applet.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.problems.service
 %{_datadir}/dbus-1/system-services/com.redhat.problems.configuration.service
 %{_datadir}/polkit-1/actions/abrt_polkit.policy
