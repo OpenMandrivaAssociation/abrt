@@ -13,8 +13,8 @@
 
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
-Version:	2.12.0
-Release:	2
+Version:	2.13.0
+Release:	1
 License:	GPLv2+
 Group:		System/Libraries
 URL:		https://github.com/abrt/abrt
@@ -25,9 +25,10 @@ Source3:	00abrt.csh
 Source4:	abrt-debuginfo-install
 Source5:	abrt-ccpp.init
 Source6:	abrt-oops.init
-Patch1:		abrt-2.10.10-compile.patch
-# (fc) disable package signature check
+Patch0:		abrt-2.13.0-python-3.8.patch
+Patch1:		abrt-2.13.0-no-fedora-braindamage.patch
 Patch2:		abrt_disable_gpgcheck.diff
+# (fc) disable package signature check
 Patch3:		abrt-2.12.0-sphinx-build.patch
 BuildRequires:	pkgconfig(ice)
 BuildRequires:	pkgconfig(sm)
@@ -599,6 +600,9 @@ fi
 %{_bindir}/%{name}-debuginfo-install
 %{_bindir}/%{name}-handle-upload
 %{_bindir}/abrt-action-notify
+/lib/systemd/catalog/python3_abrt.catalog
+%{_mandir}/man5/python3-abrt.5*
+%{_mandir}/man5/python3-abrt.conf.5*
 %{_mandir}/man1/abrt-action-notify.1.*
 %{_bindir}/abrt-action-analyze-xorg
 %{_bindir}/abrt-action-analyze-python
@@ -608,11 +612,8 @@ fi
 %{_libexecdir}/abrt-action-ureport
 %{_libexecdir}/abrt-action-generate-machine-id
 %config(noreplace) %{_sysconfdir}/%{name}/abrt.conf
-%{_datadir}/%{name}/conf.d/abrt.conf
 %config(noreplace) %{_sysconfdir}/%{name}/abrt-action-save-package-data.conf
-%{_datadir}/%{name}/conf.d/abrt-action-save-package-data.conf
 %config(noreplace) %{_sysconfdir}/%{name}/gpg_keys.conf
-%{_datadir}/%{name}/conf.d/gpg_keys.conf
 %{_mandir}/man5/gpg_keys.conf.5.*
 %config(noreplace) %{_sysconfdir}/libreport/events.d/abrt_event.conf
 %{_mandir}/man5/abrt_event.conf.5.*
@@ -637,7 +638,6 @@ fi
 %{_mandir}/man5/abrt-action-save-package-data.conf.5.*
 %{_sysconfdir}/bash_completion.d/abrt.bash_completion
 %{_sysconfdir}/dbus-1/system.d/org.freedesktop.problems.daemon.conf
-/lib/systemd/system/abrt-coredump-helper.service
 /lib/systemd/system/abrt-journal-core.service
 %{_bindir}/abrt
 %{_bindir}/abrt-action-check-oops-for-alt-component
@@ -645,19 +645,15 @@ fi
 %{_bindir}/abrt-dump-journal-core
 %{_bindir}/abrt-dump-journal-xorg
 %{_libexecdir}/abrt-action-save-container-data
-%{_datadir}/abrt/conf.d/plugins/CCpp_Atomic.conf
 %doc %{_docdir}/abrt/README.md
 %{_datadir}/libreport/events/analyze_BodhiUpdates.xml
 %{_sysconfdir}/libreport/events.d/abrt_dbus_event.conf
 %{_sysconfdir}/libreport/events.d/bodhi_event.conf
 %{_sysconfdir}/libreport/events.d/machine-id_event.conf
 %{_sysconfdir}/libreport/events.d/sosreport_event.conf
-/lib/systemd/catalog/abrt_ccpp.catalog
-%{_sysconfdir}/libreport/plugins/catalog_ccpp_format.conf
 %{_sysconfdir}/libreport/plugins/catalog_journal_ccpp_format.conf
 /lib/systemd/catalog/abrt_koops.catalog
 %{_sysconfdir}/libreport/plugins/catalog_koops_format.conf
-/lib/systemd/catalog/abrt_python3.catalog
 %{_sysconfdir}/libreport/plugins/catalog_python3_format.conf
 /lib/systemd/catalog/abrt_vmcore.catalog
 %{_sysconfdir}/libreport/plugins/catalog_vmcore_format.conf
@@ -681,8 +677,6 @@ fi
 
 %files gui
 %{_datadir}/icons/hicolor/*/apps/*
-%{_datadir}/icons/hicolor/*/status/*
-%{_datadir}/abrt/icons/hicolor/*/status/*
 %{_datadir}/%{name}/ui/*
 %{_bindir}/system-config-abrt
 %{_bindir}/%{name}-applet
@@ -692,8 +686,6 @@ fi
 
 %files addon-ccpp
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/CCpp.conf
-%config(noreplace) %{_sysconfdir}/abrt/plugins/CCpp_Atomic.conf
-%{_datadir}/%{name}/conf.d/plugins/CCpp.conf
 %{_sysconfdir}/libreport/events.d/ccpp_event.conf
 %{_mandir}/man5/ccpp_event.conf.5.*
 %{_sysconfdir}/libreport/events.d/gconf_event.conf
@@ -708,12 +700,6 @@ fi
 %{_datadir}/libreport/events/collect_vimrc_system.xml
 %{_datadir}/libreport/events/post_report.xml
 %dir %attr(0775, abrt, abrt) %{_localstatedir}/cache/abrt-di
-%if %{with systemd}
-/lib/systemd/system/abrt-ccpp.service
-%else
-%{_initrddir}/abrt-ccpp
-%endif
-%{_libexecdir}/abrt-hook-ccpp
 %{_libexecdir}/abrt-gdb-exploitable
 %attr(6755, abrt, abrt) %{_libexecdir}/abrt-action-install-debuginfo-to-abrt-cache
 %{_sysconfdir}/profile.d/00abrt.*
@@ -728,14 +714,12 @@ fi
 %{_bindir}/abrt-action-list-dsos
 %{_bindir}/abrt-action-perform-ccpp-analysis
 %{_bindir}/abrt-action-analyze-ccpp-local
-%{_sbindir}/abrt-install-ccpp-hook
 %{_mandir}/man*/abrt-action-analyze-c.*
 %{_mandir}/man*/abrt-action-trim-files.*
 %{_mandir}/man*/abrt-action-generate-backtrace.*
 %{_mandir}/man*/abrt-action-generate-core-backtrace.*
 %{_mandir}/man*/abrt-action-analyze-backtrace.*
 %{_mandir}/man*/abrt-action-list-dsos.*
-%{_mandir}/man*/abrt-install-ccpp-hook.*
 %{_mandir}/man*/abrt-action-install-debuginfo.*
 %{_mandir}/man*/abrt-action-analyze-ccpp-local.*
 %{_mandir}/man*/abrt-action-analyze-core.*
@@ -762,7 +746,6 @@ fi
 
 %files addon-kerneloops
 %config(noreplace) %{_sysconfdir}/libreport/events.d/koops_event.conf
-%{_datadir}/%{name}/conf.d/plugins/oops.conf
 %{_mandir}/man5/koops_event.conf.5.*
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/oops.conf
 %if %{with systemd}
@@ -782,7 +765,6 @@ fi
 %config(noreplace) %{_sysconfdir}/libreport/events.d/vmcore_event.conf
 %{_mandir}/man5/vmcore_event.conf.5.*
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/vmcore.conf
-%{_datadir}/%{name}/conf.d/plugins/vmcore.conf
 %{_datadir}/libreport/events/analyze_VMcore.xml
 %if %{with systemd}
 /lib/systemd/system/abrt-vmcore.service
@@ -798,8 +780,6 @@ fi
 %{_mandir}/man1/abrt-action-check-oops-for-hw-error.1*
 
 %files cli
-%{_bindir}/abrt-cli
-%{_mandir}/man1/abrt-cli.1.*
 %{python_sitearch}/abrtcli
 
 
@@ -818,10 +798,8 @@ fi
 %files addon-python
 %dir %{_sysconfdir}/%{name}/plugins
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/python3.conf
-%{_datadir}/%{name}/conf.d/plugins/python3.conf
 %{_sysconfdir}/libreport/events.d/python3_event.conf
 %{_mandir}/man5/python3_event.conf.5.*
-%{_mandir}/man5/abrt-python3.conf.5.*
 %{py_platsitedir}/abrt*.py*
 %{py_platsitedir}/*.pth
 
@@ -840,7 +818,6 @@ fi
 %files addon-xorg
 %config(noreplace) %{_sysconfdir}/libreport/events.d/xorg_event.conf
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/xorg.conf
-%{_datadir}/%{name}/conf.d/plugins/xorg.conf
 %if %{with systemd}
 %{_unitdir}/abrt-xorg.service
 %else
@@ -879,24 +856,14 @@ fi
 
 %files dbus
 %{_sbindir}/abrt-dbus
-%{_sbindir}/abrt-configuration
 %{_mandir}/man8/abrt-dbus.8.*
-%{_mandir}/man8/abrt-configuration.8.*
 %config(noreplace) %{_sysconfdir}/dbus-1/system.d/dbus-abrt.conf
-%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.xml
-%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.abrt.xml
-%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.ccpp.xml
-%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.oops.xml
-%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.vmcore.xml
-%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.xorg.xml
-%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.python3.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.Entry.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.Session.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.Task.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.xml
 %{_datadir}/dbus-1/services/org.freedesktop.problems.applet.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.problems.service
-%{_datadir}/dbus-1/system-services/com.redhat.problems.configuration.service
 %{_datadir}/polkit-1/actions/abrt_polkit.policy
 %dir %{_defaultdocdir}/%{name}-dbus-%{version}/
 %dir %{_defaultdocdir}/%{name}-dbus-%{version}/html/
@@ -906,7 +873,6 @@ fi
 %files -n python-%{name}
 %{py_platsitedir}/problem/
 %{py_platsitedir}/__pycache__/abrt*
-%{_mandir}/man5/abrt-python3.*
 
 %files -n python-%{name}-doc
 %{py_puresitedir}/problem_examples

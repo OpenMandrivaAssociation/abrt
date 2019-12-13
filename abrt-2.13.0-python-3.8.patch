@@ -1,0 +1,16 @@
+diff -up abrt-2.13.0/configure.ac.omv~ abrt-2.13.0/configure.ac
+--- abrt-2.13.0/configure.ac.omv~	2019-12-13 19:59:02.301397202 +0100
++++ abrt-2.13.0/configure.ac	2019-12-13 19:59:16.403396278 +0100
+@@ -137,10 +137,10 @@ ABRT_PARSE_WITH([pythontests]))
+ [if test -z "$NO_PYTHONTESTS"]
+ [then]
+     AM_CONDITIONAL(HAVE_PYTHON_NOSE, true)
+-    AC_PATH_PROG([PYTHON_NOSE], [nosetests-3], [no])
++    AC_PATH_PROG([PYTHON_NOSE], [nosetests-3.8], [no])
+     [if test "$PYTHON_NOSE" = "no"]
+     [then]
+-        [echo "The nosetests-3 program was not found in the search path. Please ensure"]
++        [echo "The nosetests-3.8 program was not found in the search path. Please ensure"]
+         [echo "that it is installed and its directory is included in the search path or"]
+         [echo "pass --without-pythontests to ./configure."]
+         [echo "Then run configure again before attempting to build ABRT."]
