@@ -10,3 +10,46 @@ diff -up abrt-2.13.0/src/python-problem/doc/Makefile.am.omv~ abrt-2.13.0/src/pyt
  endif
  PAPER         =
  BUILDDIR      = _build
+diff -up abrt-2.14.5/configure.ac.omv~ abrt-2.14.5/configure.ac
+--- abrt-2.14.5/configure.ac.omv~	2020-12-31 17:00:13.582190899 +0100
++++ abrt-2.14.5/configure.ac	2020-12-31 17:00:21.418565379 +0100
+@@ -137,10 +137,10 @@ ABRT_PARSE_WITH([pythontests]))
+ [if test -z "$NO_PYTHONTESTS"]
+ [then]
+     AM_CONDITIONAL(HAVE_PYTEST, true)
+-    AC_PATH_PROG([PYTEST], [pytest-3], [no])
++    AC_PATH_PROG([PYTEST], [pytest], [no])
+     [if test "$PYTEST" = "no"]
+     [then]
+-        [echo "The pytest-3 program was not found in the search path. Please ensure"]
++        [echo "The pytest program was not found in the search path. Please ensure"]
+         [echo "that it is installed and its directory is included in the search path or"]
+         [echo "pass --without-pythontests to ./configure."]
+         [echo "Then run configure again before attempting to build ABRT."]
+diff -up abrt-2.14.5/src/cli/test.omv~ abrt-2.14.5/src/cli/test
+--- abrt-2.14.5/src/cli/test.omv~	2020-12-31 17:00:40.880506358 +0100
++++ abrt-2.14.5/src/cli/test	2020-12-31 17:00:47.751841996 +0100
+@@ -1,9 +1,9 @@
+ #!/bin/bash
+ 
+-which pytest-3 &> /dev/null
++which pytest &> /dev/null
+ if [ $? -ne 0 ]; then
+-    echo 'python3-pytest package required'
++    echo 'python-pytest package required'
+     exit 1
+ fi
+ 
+-pytest-3 --cov=abrtcli --capture=no --verbose tests/*.py
++pytest --cov=abrtcli --capture=no --verbose tests/*.py
+diff -up abrt-2.14.5/src/python-problem/tests/Makefile.am.omv~ abrt-2.14.5/src/python-problem/tests/Makefile.am
+--- abrt-2.14.5/src/python-problem/tests/Makefile.am.omv~	2020-12-31 17:00:33.468146228 +0100
++++ abrt-2.14.5/src/python-problem/tests/Makefile.am	2020-12-31 17:00:36.250281156 +0100
+@@ -11,6 +11,6 @@ EXTRA_DIST = $(check_SCRIPTS) util.py ba
+ if BUILD_PYTHON3
+ if HAVE_PYTEST
+ check-local: $(check_SCRIPTS)
+-	pytest-3 --capture=no --verbose $(check_SCRIPTS)
++	pytest --capture=no --verbose $(check_SCRIPTS)
+ endif
+ endif

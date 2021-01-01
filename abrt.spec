@@ -13,7 +13,7 @@
 
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
-Version:	2.13.0
+Version:	2.14.5
 Release:	1
 License:	GPLv2+
 Group:		System/Libraries
@@ -25,7 +25,6 @@ Source3:	00abrt.csh
 Source4:	abrt-debuginfo-install
 Source5:	abrt-ccpp.init
 Source6:	abrt-oops.init
-Patch0:		abrt-2.13.0-python-3.8.patch
 Patch1:		abrt-2.13.0-no-fedora-braindamage.patch
 Patch2:		abrt_disable_gpgcheck.diff
 # (fc) disable package signature check
@@ -650,7 +649,6 @@ fi
 %{_sysconfdir}/libreport/events.d/abrt_dbus_event.conf
 %{_sysconfdir}/libreport/events.d/bodhi_event.conf
 %{_sysconfdir}/libreport/events.d/machine-id_event.conf
-%{_sysconfdir}/libreport/events.d/sosreport_event.conf
 %{_sysconfdir}/libreport/plugins/catalog_journal_ccpp_format.conf
 /lib/systemd/catalog/abrt_koops.catalog
 %{_sysconfdir}/libreport/plugins/catalog_koops_format.conf
@@ -664,6 +662,8 @@ fi
 %{_mandir}/man1/abrt-dump-journal-xorg.1*
 %{_mandir}/man1/abrt.1*
 %{_datadir}/augeas/lenses/abrt.aug
+%{py_puresitedir}/abrt_exception_handler3*.py
+%optional %{py_puresitedir}/__pycache__/abrt_exception_handler3*
 
 %files -n %{lib_name}
 %{_libdir}/libabrt*.so.*
@@ -725,7 +725,8 @@ fi
 %{_mandir}/man*/abrt-action-analyze-core.*
 %{_mandir}/man*/abrt-action-analyze-vulnerability.*
 %{_mandir}/man*/abrt-action-perform-ccpp-analysis.*
-%{_mandir}/man5/abrt-CCpp.conf.5.*
+%{_mandir}/man5/abrt-CCpp.conf.5*
+/lib/systemd/catalog/abrt_ccpp.catalog
 
 %files addon-upload-watch
 %defattr(-,root,root,-)
@@ -780,8 +781,8 @@ fi
 %{_mandir}/man1/abrt-action-check-oops-for-hw-error.1*
 
 %files cli
-%{python_sitearch}/abrtcli
-
+%{py_puresitedir}/abrtcli
+%{py_puresitedir}/*.pth
 
 %files addon-pstoreoops
 %defattr(-,root,root,-)
@@ -800,8 +801,6 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/python3.conf
 %{_sysconfdir}/libreport/events.d/python3_event.conf
 %{_mandir}/man5/python3_event.conf.5.*
-%{py_platsitedir}/abrt*.py*
-%{py_platsitedir}/*.pth
 
 %if %{with python2}
 %files addon-python2
@@ -872,7 +871,6 @@ fi
 
 %files -n python-%{name}
 %{py_platsitedir}/problem/
-%{py_platsitedir}/__pycache__/abrt*
 
 %files -n python-%{name}-doc
 %{py_puresitedir}/problem_examples
