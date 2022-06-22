@@ -1,5 +1,3 @@
-# (blino) FIXME: switch back to 1 when systemd is installable
-%define with_systemd 1
 %define _disable_rebuild_configure 1
 %define _disable_ld_no_undefined 1
 %bcond_with python2
@@ -14,7 +12,7 @@
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
 Version:	2.14.5
-Release:	1
+Release:	2
 License:	GPLv2+
 Group:		System/Libraries
 URL:		https://github.com/abrt/abrt
@@ -47,7 +45,7 @@ BuildRequires:	pkgconfig(libcap)
 BuildRequires:	pkgconfig(libsoup-2.4)
 BuildRequires:	desktop-file-utils
 BuildRequires:	nss-devel
-BuildRequires:	systemd
+BuildRequires:	systemd-rpm-macros
 BuildRequires:	libnotify-devel
 BuildRequires:	xmlrpc-c-devel
 BuildRequires:	xmlrpc-c
@@ -72,10 +70,7 @@ BuildRequires:	docbook-style-xsl
 BuildRequires:	xmlto
 BuildRequires:	libgnome-keyring-devel
 BuildRequires:	gettext-devel
-%if %{?with_systemd}
-BuildRequires:	systemd-units
 BuildRequires:	pkgconfig(libsystemd)
-%endif
 Requires:	%{lib_name} >= %{version}-%{release}
 Requires(pre):	rpm-helper
 Requires(post):	rpm-helper
@@ -366,12 +361,7 @@ export PYTHON=%__python2
 %endif
 export PYTHONDONTWRITEBYTECODE=True
 %configure \
-%if !%{with_systemd}
-    --without-systemdsystemunitdir \
-%endif
-%if %{with_systemd}
-    --with-systemdsystemunitdir=/lib/systemd/system \
-%endif
+    --with-systemdsystemunitdir=%{_unitdir} \
     --disable-rpath \
     --enable-gtk3 \
 %if ! %{with python2}
@@ -390,13 +380,6 @@ export PYTHONDONTWRITEBYTECODE=True
 
 # remove all .la and .a files
 find %{buildroot} -name '*.la' -or -name '*.a' | xargs rm -f
-%if !%{with_systemd}
-mkdir -p %{buildroot}/%{_initrddir}
-install -m 755 %SOURCE1 %{buildroot}/%{_initrddir}/%{name}d
-install -m 755 %SOURCE5 %{buildroot}/%{_initrddir}/%{name}-ccpp
-install -m 755 %SOURCE6 %{buildroot}/%{_initrddir}/%{name}-oops
-sed -i 's!@libexec@!%_libdir!' %{buildroot}/%{_initrddir}/%{name}-ccpp
-%endif
 mkdir -p %{buildroot}/var/cache/%{name}-di
 mkdir -p %{buildroot}/var/run/%{name}
 mkdir -p %{buildroot}/var/spool/%{name}
@@ -433,22 +416,14 @@ rm -f %{buildroot}%{_bindir}/%{name}-action-rhtsupport
 # After everything is installed, remove info dir
 rm -f %{buildroot}%{_infodir}/dir
 
-# systemd units should go to the right place
-mkdir -p %{buildroot}/lib
-mv %{buildroot}%{_prefix}/lib/systemd %{buildroot}/lib
-
 %pre
 %_pre_useradd %{name} %{_sysconfdir}/%{name} /sbin/nologin
 %_pre_groupadd %{name} %{name}
 
 %post
 if [ $1 -eq 1 ]; then
-%if %{with systemd}
     # Enable (but don't start) the units by default
-    /bin/systemctl enable abrtd.service >/dev/null 2>&1 || :
-%else
-    /sbin/chkconfig --add abrtd
-%endif
+    /usr/bin/systemctl enable abrtd.service >/dev/null 2>&1 || :
 fi
 
 %post addon-ccpp
@@ -457,98 +432,62 @@ fi
 # so 2.x fails when it tries to extract debuginfo there..
 chown -R abrt:abrt %{_localstatedir}/cache/abrt-di
 if [ $1 -eq 1 ]; then
-%if %{with systemd}
     # Enable (but don't start) the units by default
-    /bin/systemctl enable abrt-ccpp.service >/dev/null 2>&1 || :
-%else
-    /sbin/chkconfig --add abrt-ccpp
-%endif
+    /usr/bin/systemctl enable abrt-ccpp.service >/dev/null 2>&1 || :
 fi
 
 %post addon-kerneloops
 if [ $1 -eq 1 ]; then
-%if %{with systemd}
     # Enable (but don't start) the units by default
-    /bin/systemctl enable abrt-oops.service >/dev/null 2>&1 || :
-%else
-    /sbin/chkconfig --add abrt-oops
-%endif
+    /usr/bin/systemctl enable abrt-oops.service >/dev/null 2>&1 || :
 fi
 
 %post addon-vmcore
 if [ $1 -eq 1 ]; then
-%if %{with systemd}
     # Enable (but don't start) the units by default
-    /bin/systemctl enable abrt-vmcore.service >/dev/null 2>&1 || :
-%else
-    /sbin/chkconfig --add abrt-vmcore
-%endif
+    /usr/bin/systemctl enable abrt-vmcore.service >/dev/null 2>&1 || :
 fi
 
 %preun
 if [ "$1" -eq "0" ] ; then
-%if %{with systemd}
-    /bin/systemctl --no-reload disable abrtd.service > /dev/null 2>&1 || :
-    /bin/systemctl stop abrtd.service >/dev/null 2>&1 || :
-%else
-    service abrtd stop >/dev/null 2>&1
-    /sbin/chkconfig --del abrtd
-%endif
+    /usr/bin/systemctl --no-reload disable abrtd.service > /dev/null 2>&1 || :
+    /usr/bin/systemctl stop abrtd.service >/dev/null 2>&1 || :
 fi
 
 %preun addon-ccpp
 if [ "$1" -eq "0" ] ; then
-%if %{with systemd}
-    /bin/systemctl --no-reload disable abrt-ccpp.service >/dev/null 2>&1 || :
-    /bin/systemctl stop abrt-ccpp.service >/dev/null 2>&1 || :
-%else
-    service abrt-ccpp stop >/dev/null 2>&1
-    /sbin/chkconfig --del abrt-ccpp
-%endif
+    /usr/bin/systemctl --no-reload disable abrt-ccpp.service >/dev/null 2>&1 || :
+    /usr/bin/systemctl stop abrt-ccpp.service >/dev/null 2>&1 || :
 fi
 
 %preun addon-kerneloops
 if [ "$1" -eq "0" ] ; then
-%if %{with systemd}
-    /bin/systemctl --no-reload abrt-oops.service >/dev/null 2>&1 || :
-    /bin/systemctl stop abrt-oops.service >/dev/null 2>&1 || :
-%else
-    service abrt-oops stop >/dev/null 2>&1
-    /sbin/chkconfig --del abrt-oops
-%endif
+    /usr/bin/systemctl --no-reload abrt-oops.service >/dev/null 2>&1 || :
+    /usr/bin/systemctl stop abrt-oops.service >/dev/null 2>&1 || :
 fi
 
 %preun addon-vmcore
 if [ "$1" -eq "0" ] ; then
-%if %{with systemd}
-    /bin/systemctl --no-reload abrt-vmcore.service >/dev/null 2>&1 || :
-    /bin/systemctl stop abrt-vmcore.service >/dev/null 2>&1 || :
-%else
-    service abrt-vmcore stop >/dev/null 2>&1
-    /sbin/chkconfig --del abrt-vmcore
-%endif
+    /usr/bin/systemctl --no-reload abrt-vmcore.service >/dev/null 2>&1 || :
+    /usr/bin/systemctl stop abrt-vmcore.service >/dev/null 2>&1 || :
 fi
 
 %postun
 %_postun_userdel %{name}
 %_postun_groupdel %{name} %{name}
-%if %{with systemd}
 if [ $1 -ge 1 ] ; then
 # On upgrade, reload init system configuration if we changed unit files
-    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+    /usr/bin/systemctl daemon-reload >/dev/null 2>&1 || :
 fi
-%endif
 
-%if %{with systemd}
 %postun addon-kerneloops
-/bin/systemctl daemon-reload >/dev/null 2>&1 || :
+/usr/bin/systemctl daemon-reload >/dev/null 2>&1 || :
 
 %postun addon-vmcore
-/bin/systemctl daemon-reload >/dev/null 2>&1 || :
+/usr/bin/systemctl daemon-reload >/dev/null 2>&1 || :
 
 %postun addon-ccpp
-/bin/systemctl daemon-reload >/dev/null 2>&1 || :
-%endif
+/usr/bin/systemctl daemon-reload >/dev/null 2>&1 || :
 
 %post gui
 # update icon cache
@@ -588,22 +527,18 @@ fi
 
 %files -f %{name}.lang
 %license COPYING
-%if %{with systemd}
-/lib/systemd/system/abrtd.service
+%{_unitdir}abrtd.service
 %{_tmpfilesdir}/abrt.conf
-%else
-%{_initrddir}/abrtd
-%endif
 %{_sbindir}/%{name}d
 %{_sbindir}/%{name}-server
 %{_sbindir}/%{name}-auto-reporting
 %{_bindir}/%{name}-debuginfo-install
 %{_bindir}/%{name}-handle-upload
 %{_bindir}/abrt-action-notify
-/lib/systemd/catalog/python3_abrt.catalog
-%{_mandir}/man5/python3-abrt.5*
-%{_mandir}/man5/python3-abrt.conf.5*
-%{_mandir}/man1/abrt-action-notify.1.*
+%{_journalcatalogdir}/python3_abrt.catalog
+%doc %{_mandir}/man5/python3-abrt.5*
+%doc %{_mandir}/man5/python3-abrt.conf.5*
+%doc %{_mandir}/man1/abrt-action-notify.1.*
 %{_bindir}/abrt-action-analyze-xorg
 %{_bindir}/abrt-action-analyze-python
 %{_bindir}/%{name}-action-save-package-data
@@ -614,11 +549,11 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}/abrt.conf
 %config(noreplace) %{_sysconfdir}/%{name}/abrt-action-save-package-data.conf
 %config(noreplace) %{_sysconfdir}/%{name}/gpg_keys.conf
-%{_mandir}/man5/gpg_keys.conf.5.*
+%doc %{_mandir}/man5/gpg_keys.conf.5.*
 %config(noreplace) %{_sysconfdir}/libreport/events.d/abrt_event.conf
-%{_mandir}/man5/abrt_event.conf.5.*
+%doc %{_mandir}/man5/abrt_event.conf.5.*
 %config(noreplace) %{_sysconfdir}/libreport/events.d/smart_event.conf
-%{_mandir}/man5/smart_event.conf.5.*
+%doc %{_mandir}/man5/smart_event.conf.5.*
 %ghost %attr(0666, -, -) %{_localstatedir}/run/%{name}/abrt.socket
 %ghost %attr(0644, -, -) %{_localstatedir}/run/%{name}d.pid
 #%dir %attr(0755, %{name}, %{name}) %{_localstatedir}/cache/%{name}
@@ -626,19 +561,19 @@ fi
 %dir %{_sysconfdir}/%{name}
 %ghost %{_sysconfdir}/%{name}/gpg_keys
 %dir %{_sysconfdir}/%{name}/plugins
-%{_mandir}/man1/abrt-handle-upload.1.*
-%{_mandir}/man1/abrt-server.1.*
-%{_mandir}/man1/abrt-action-save-package-data.1.*
-%{_mandir}/man1/abrt-watch-log.1.*
-%{_mandir}/man1/abrt-action-analyze-python.1*
-%{_mandir}/man1/abrt-action-analyze-xorg.1.*
-%{_mandir}/man1/abrt-auto-reporting.1.*
-%{_mandir}/man8/abrtd.8.*
-%{_mandir}/man5/abrt.conf.5.*
-%{_mandir}/man5/abrt-action-save-package-data.conf.5.*
+%doc %{_mandir}/man1/abrt-handle-upload.1.*
+%doc %{_mandir}/man1/abrt-server.1.*
+%doc %{_mandir}/man1/abrt-action-save-package-data.1.*
+%doc %{_mandir}/man1/abrt-watch-log.1.*
+%doc %{_mandir}/man1/abrt-action-analyze-python.1*
+%doc %{_mandir}/man1/abrt-action-analyze-xorg.1.*
+%doc %{_mandir}/man1/abrt-auto-reporting.1.*
+%doc %{_mandir}/man8/abrtd.8.*
+%doc %{_mandir}/man5/abrt.conf.5.*
+%doc %{_mandir}/man5/abrt-action-save-package-data.conf.5.*
 %{_sysconfdir}/bash_completion.d/abrt.bash_completion
 %{_sysconfdir}/dbus-1/system.d/org.freedesktop.problems.daemon.conf
-/lib/systemd/system/abrt-journal-core.service
+%{_unitdir}/abrt-journal-core.service
 %{_bindir}/abrt
 %{_bindir}/abrt-action-check-oops-for-alt-component
 %{_bindir}/abrt-action-find-bodhi-update
@@ -651,17 +586,17 @@ fi
 %{_sysconfdir}/libreport/events.d/bodhi_event.conf
 %{_sysconfdir}/libreport/events.d/machine-id_event.conf
 %{_sysconfdir}/libreport/plugins/catalog_journal_ccpp_format.conf
-/lib/systemd/catalog/abrt_koops.catalog
+%{_journalcatalogdir}/abrt_koops.catalog
 %{_sysconfdir}/libreport/plugins/catalog_koops_format.conf
 %{_sysconfdir}/libreport/plugins/catalog_python3_format.conf
-/lib/systemd/catalog/abrt_vmcore.catalog
+%{_journalcatalogdir}/abrt_vmcore.catalog
 %{_sysconfdir}/libreport/plugins/catalog_vmcore_format.conf
-/lib/systemd/catalog/abrt_xorg.catalog
+%{_journalcatalogdir}/abrt_xorg.catalog
 %{_sysconfdir}/libreport/plugins/catalog_xorg_format.conf
-%{_mandir}/man1/abrt-action-find-bodhi-update.1*
-%{_mandir}/man1/abrt-dump-journal-core.1*
-%{_mandir}/man1/abrt-dump-journal-xorg.1*
-%{_mandir}/man1/abrt.1*
+%doc %{_mandir}/man1/abrt-action-find-bodhi-update.1*
+%doc %{_mandir}/man1/abrt-dump-journal-core.1*
+%doc %{_mandir}/man1/abrt-dump-journal-xorg.1*
+%doc %{_mandir}/man1/abrt.1*
 %{_datadir}/augeas/lenses/abrt.aug
 %{py_puresitedir}/abrt_exception_handler3*.py
 %optional %{py_puresitedir}/__pycache__/abrt_exception_handler3*
@@ -682,17 +617,17 @@ fi
 %{_bindir}/system-config-abrt
 %{_bindir}/%{name}-applet
 %{_sysconfdir}/xdg/autostart/org.freedesktop.problems.applet.desktop
-%{_mandir}/man1/abrt-applet.1*
-%{_mandir}/man1/system-config-abrt.1*
+%doc %{_mandir}/man1/abrt-applet.1*
+%doc %{_mandir}/man1/system-config-abrt.1*
 
 %files addon-ccpp
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/CCpp.conf
 %{_sysconfdir}/libreport/events.d/ccpp_event.conf
-%{_mandir}/man5/ccpp_event.conf.5.*
+%doc %{_mandir}/man5/ccpp_event.conf.5.*
 %{_sysconfdir}/libreport/events.d/gconf_event.conf
-%{_mandir}/man5/gconf_event.conf.5.*
+%doc %{_mandir}/man5/gconf_event.conf.5.*
 %{_sysconfdir}/libreport/events.d/vimrc_event.conf
-%{_mandir}/man5/vimrc_event.conf.5.*
+%doc %{_mandir}/man5/vimrc_event.conf.5.*
 %{_datadir}/libreport/events/analyze_CCpp.xml
 %{_datadir}/libreport/events/analyze_LocalGDB.xml
 %{_datadir}/libreport/events/collect_xsession_errors.xml
@@ -715,71 +650,59 @@ fi
 %{_bindir}/abrt-action-list-dsos
 %{_bindir}/abrt-action-perform-ccpp-analysis
 %{_bindir}/abrt-action-analyze-ccpp-local
-%{_mandir}/man*/abrt-action-analyze-c.*
-%{_mandir}/man*/abrt-action-trim-files.*
-%{_mandir}/man*/abrt-action-generate-backtrace.*
-%{_mandir}/man*/abrt-action-generate-core-backtrace.*
-%{_mandir}/man*/abrt-action-analyze-backtrace.*
-%{_mandir}/man*/abrt-action-list-dsos.*
-%{_mandir}/man*/abrt-action-install-debuginfo.*
-%{_mandir}/man*/abrt-action-analyze-ccpp-local.*
-%{_mandir}/man*/abrt-action-analyze-core.*
-%{_mandir}/man*/abrt-action-analyze-vulnerability.*
-%{_mandir}/man*/abrt-action-perform-ccpp-analysis.*
-%{_mandir}/man5/abrt-CCpp.conf.5*
-/lib/systemd/catalog/abrt_ccpp.catalog
+%doc %{_mandir}/man*/abrt-action-analyze-c.*
+%doc %{_mandir}/man*/abrt-action-trim-files.*
+%doc %{_mandir}/man*/abrt-action-generate-backtrace.*
+%doc %{_mandir}/man*/abrt-action-generate-core-backtrace.*
+%doc %{_mandir}/man*/abrt-action-analyze-backtrace.*
+%doc %{_mandir}/man*/abrt-action-list-dsos.*
+%doc %{_mandir}/man*/abrt-action-install-debuginfo.*
+%doc %{_mandir}/man*/abrt-action-analyze-ccpp-local.*
+%doc %{_mandir}/man*/abrt-action-analyze-core.*
+%doc %{_mandir}/man*/abrt-action-analyze-vulnerability.*
+%doc %{_mandir}/man*/abrt-action-perform-ccpp-analysis.*
+%doc %{_mandir}/man5/abrt-CCpp.conf.5*
+%{_journalcatalogdir}/abrt_ccpp.catalog
 
 %files addon-upload-watch
 %defattr(-,root,root,-)
 %{_sbindir}/abrt-upload-watch
-%if %{with systemd}
 %{_unitdir}/abrt-upload-watch.service
-%else
-%{_initrddir}/abrt-upload-watch
-%endif
-%{_mandir}/man*/abrt-upload-watch.*
+%doc %{_mandir}/man*/abrt-upload-watch.*
 
 %files retrace-client
 %{_bindir}/abrt-retrace-client
-%{_mandir}/man1/abrt-retrace-client.1.*
+%doc %{_mandir}/man1/abrt-retrace-client.1.*
 %config(noreplace) %{_sysconfdir}/libreport/events.d/ccpp_retrace_event.conf
-%{_mandir}/man5/ccpp_retrace_event.conf.5.*
+%doc %{_mandir}/man5/ccpp_retrace_event.conf.5.*
 %{_datadir}/libreport/events/analyze_RetraceServer.xml
 
 %files addon-kerneloops
 %config(noreplace) %{_sysconfdir}/libreport/events.d/koops_event.conf
-%{_mandir}/man5/koops_event.conf.5.*
+%doc %{_mandir}/man5/koops_event.conf.5.*
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/oops.conf
-%if %{with systemd}
-/lib/systemd/system/abrt-oops.service
-%else
-%{_initrddir}/abrt-oops
-%endif
+%{_unitdir}/abrt-oops.service
 %{_bindir}/abrt-dump-oops
 %{_bindir}/abrt-dump-journal-oops
 %{_bindir}/abrt-action-analyze-oops
-%{_mandir}/man1/abrt-dump-oops.1*
-%{_mandir}/man1/abrt-dump-journal-oops.1*
-%{_mandir}/man1/abrt-action-analyze-oops.1*
-%{_mandir}/man5/abrt-oops.conf.5*
+%doc %{_mandir}/man1/abrt-dump-oops.1*
+%doc %{_mandir}/man1/abrt-dump-journal-oops.1*
+%doc %{_mandir}/man1/abrt-action-analyze-oops.1*
+%doc %{_mandir}/man5/abrt-oops.conf.5*
 
 %files addon-vmcore
 %config(noreplace) %{_sysconfdir}/libreport/events.d/vmcore_event.conf
-%{_mandir}/man5/vmcore_event.conf.5.*
+%doc %{_mandir}/man5/vmcore_event.conf.5.*
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/vmcore.conf
 %{_datadir}/libreport/events/analyze_VMcore.xml
-%if %{with systemd}
-/lib/systemd/system/abrt-vmcore.service
-%else
-%{_initrddir}/abrt-vmcore
-%endif
+%{_unitdir}/abrt-vmcore.service
 %{_sbindir}/abrt-harvest-vmcore
 %{_bindir}/abrt-action-analyze-vmcore
 %{_bindir}/abrt-action-check-oops-for-hw-error
-%{_mandir}/man1/abrt-harvest-vmcore.1*
-%{_mandir}/man5/abrt-vmcore.conf.5*
-%{_mandir}/man1/abrt-action-analyze-vmcore.1*
-%{_mandir}/man1/abrt-action-check-oops-for-hw-error.1*
+%doc %{_mandir}/man1/abrt-harvest-vmcore.1*
+%doc %{_mandir}/man5/abrt-vmcore.conf.5*
+%doc %{_mandir}/man1/abrt-action-analyze-vmcore.1*
+%doc %{_mandir}/man1/abrt-action-check-oops-for-hw-error.1*
 
 %files cli
 %{py_puresitedir}/abrtcli
@@ -787,21 +710,17 @@ fi
 
 %files addon-pstoreoops
 %defattr(-,root,root,-)
-%if %{with systemd}
 %{_unitdir}/abrt-pstoreoops.service
-%else
-%{_initrddir}/abrt-pstoreoops
-%endif
 %{_sbindir}/abrt-harvest-pstoreoops
 %{_bindir}/abrt-merge-pstoreoops
-%{_mandir}/man1/abrt-harvest-pstoreoops.1*
-%{_mandir}/man1/abrt-merge-pstoreoops.1*
+%doc %{_mandir}/man1/abrt-harvest-pstoreoops.1*
+%doc %{_mandir}/man1/abrt-merge-pstoreoops.1*
 
 %files addon-python
 %dir %{_sysconfdir}/%{name}/plugins
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/python3.conf
 %{_sysconfdir}/libreport/events.d/python3_event.conf
-%{_mandir}/man5/python3_event.conf.5.*
+%doc %{_mandir}/man5/python3_event.conf.5.*
 
 %if %{with python2}
 %files addon-python2
@@ -809,8 +728,8 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/python.conf
 %{_datadir}/%{name}/conf.d/plugins/python.conf
 %{_sysconfdir}/libreport/events.d/python_event.conf
-%{_mandir}/man5/python_event.conf.5.*
-%{_mandir}/man5/abrt-python.conf.5.*
+%doc %{_mandir}/man5/python_event.conf.5.*
+%doc %{_mandir}/man5/abrt-python.conf.5.*
 %{py2_platsitedir}/abrt*.py*
 %{py2_platsitedir}/*.pth
 %endif
@@ -818,15 +737,11 @@ fi
 %files addon-xorg
 %config(noreplace) %{_sysconfdir}/libreport/events.d/xorg_event.conf
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/xorg.conf
-%if %{with systemd}
 %{_unitdir}/abrt-xorg.service
-%else
-%{_initrddir}/abrt-xorg
-%endif
 %{_bindir}/abrt-dump-xorg
-%{_mandir}/man1/abrt-dump-xorg.1*
-%{_mandir}/man5/xorg_event.conf.5.*
-%{_mandir}/man5/abrt-xorg.conf.5.*
+%doc %{_mandir}/man1/abrt-dump-xorg.1*
+%doc %{_mandir}/man5/xorg_event.conf.5.*
+%doc %{_mandir}/man5/abrt-xorg.conf.5.*
 
 %files desktop
 
@@ -852,11 +767,11 @@ fi
 %files plugin-bodhi
 %defattr(-,root,root,-)
 %{_bindir}/abrt-bodhi
-%{_mandir}/man1/abrt-bodhi.1.*
+%doc %{_mandir}/man1/abrt-bodhi.1.*
 
 %files dbus
 %{_sbindir}/abrt-dbus
-%{_mandir}/man8/abrt-dbus.8.*
+%doc %{_mandir}/man8/abrt-dbus.8.*
 %config(noreplace) %{_sysconfdir}/dbus-1/system.d/dbus-abrt.conf
 %{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.Entry.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.Session.xml
@@ -879,7 +794,7 @@ fi
 %if %{with python2}
 %files -n python2-%{name}
 %{py2_platsitedir}/problem/
-%{_mandir}/man5/abrt-python.5.*
+%doc %{_mandir}/man5/abrt-python.5.*
 
 %files -n python2-%{name}-doc
 %{py2_puresitedir}/problem_examples
