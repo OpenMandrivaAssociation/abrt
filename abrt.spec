@@ -11,8 +11,8 @@
 
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
-Version:	2.14.5
-Release:	2
+Version:	2.15.1
+Release:	1
 License:	GPLv2+
 Group:		System/Libraries
 URL:		https://github.com/abrt/abrt
@@ -527,7 +527,7 @@ fi
 
 %files -f %{name}.lang
 %license COPYING
-%{_unitdir}abrtd.service
+%{_unitdir}/abrtd.service
 %{_tmpfilesdir}/abrt.conf
 %{_sbindir}/%{name}d
 %{_sbindir}/%{name}-server
