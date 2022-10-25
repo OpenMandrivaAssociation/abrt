@@ -11,7 +11,7 @@
 
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
-Version:	2.15.1
+Version:	2.16.0
 Release:	1
 License:	GPLv2+
 Group:		System/Libraries
@@ -134,17 +134,6 @@ Requires: %{name} = %{version}-%{release}
 
 %description addon-upload-watch
 This package contains hook for uploaded problems.
-
-%package retrace-client
-Summary: %{name}'s retrace client
-Group: System/Libraries
-Requires: %{name} = %{version}-%{release}
-Requires: xz
-Requires: tar
-
-%description retrace-client
-This package contains the client application for Retrace server
-which is able to analyze C/C++ crashes remotely.
 
 %package addon-kerneloops
 Summary:	%{name}'s kerneloops addon
@@ -571,7 +560,6 @@ fi
 %doc %{_mandir}/man8/abrtd.8.*
 %doc %{_mandir}/man5/abrt.conf.5.*
 %doc %{_mandir}/man5/abrt-action-save-package-data.conf.5.*
-%{_sysconfdir}/bash_completion.d/abrt.bash_completion
 %{_sysconfdir}/dbus-1/system.d/org.freedesktop.problems.daemon.conf
 %{_unitdir}/abrt-journal-core.service
 %{_bindir}/abrt
@@ -637,18 +625,14 @@ fi
 %{_datadir}/libreport/events/post_report.xml
 %dir %attr(0775, abrt, abrt) %{_localstatedir}/cache/abrt-di
 %{_libexecdir}/abrt-gdb-exploitable
-%attr(6755, abrt, abrt) %{_libexecdir}/abrt-action-install-debuginfo-to-abrt-cache
 %{_sysconfdir}/profile.d/00abrt.*
 %{_bindir}/abrt-action-analyze-c
 %{_bindir}/abrt-action-trim-files
-%{_bindir}/abrt-action-analyze-core
 %{_bindir}/abrt-action-analyze-vulnerability
-%{_bindir}/abrt-action-install-debuginfo
 %{_bindir}/abrt-action-generate-backtrace
 %{_bindir}/abrt-action-generate-core-backtrace
 %{_bindir}/abrt-action-analyze-backtrace
 %{_bindir}/abrt-action-list-dsos
-%{_bindir}/abrt-action-perform-ccpp-analysis
 %{_bindir}/abrt-action-analyze-ccpp-local
 %doc %{_mandir}/man*/abrt-action-analyze-c.*
 %doc %{_mandir}/man*/abrt-action-trim-files.*
@@ -656,11 +640,8 @@ fi
 %doc %{_mandir}/man*/abrt-action-generate-core-backtrace.*
 %doc %{_mandir}/man*/abrt-action-analyze-backtrace.*
 %doc %{_mandir}/man*/abrt-action-list-dsos.*
-%doc %{_mandir}/man*/abrt-action-install-debuginfo.*
 %doc %{_mandir}/man*/abrt-action-analyze-ccpp-local.*
-%doc %{_mandir}/man*/abrt-action-analyze-core.*
 %doc %{_mandir}/man*/abrt-action-analyze-vulnerability.*
-%doc %{_mandir}/man*/abrt-action-perform-ccpp-analysis.*
 %doc %{_mandir}/man5/abrt-CCpp.conf.5*
 %{_journalcatalogdir}/abrt_ccpp.catalog
 
@@ -669,13 +650,6 @@ fi
 %{_sbindir}/abrt-upload-watch
 %{_unitdir}/abrt-upload-watch.service
 %doc %{_mandir}/man*/abrt-upload-watch.*
-
-%files retrace-client
-%{_bindir}/abrt-retrace-client
-%doc %{_mandir}/man1/abrt-retrace-client.1.*
-%config(noreplace) %{_sysconfdir}/libreport/events.d/ccpp_retrace_event.conf
-%doc %{_mandir}/man5/ccpp_retrace_event.conf.5.*
-%{_datadir}/libreport/events/analyze_RetraceServer.xml
 
 %files addon-kerneloops
 %config(noreplace) %{_sysconfdir}/libreport/events.d/koops_event.conf
