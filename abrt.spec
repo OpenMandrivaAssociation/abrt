@@ -71,6 +71,7 @@ BuildRequires:	xmlto
 BuildRequires:	libgnome-keyring-devel
 BuildRequires:	gettext-devel
 BuildRequires:	pkgconfig(libsystemd)
+BuildRequires:	rpm-helper
 Requires:	%{lib_name} >= %{version}-%{release}
 Requires(pre):	rpm-helper
 Requires(post):	rpm-helper
