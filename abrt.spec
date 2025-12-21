@@ -27,6 +27,8 @@ Patch1:		abrt-2.13.0-no-fedora-braindamage.patch
 Patch2:		abrt_disable_gpgcheck.diff
 # (fc) disable package signature check
 Patch3:		abrt-2.12.0-sphinx-build.patch
+BuildRequires:	libtool-base
+BuildRequires:	slibtool
 BuildRequires:	pkgconfig(ice)
 BuildRequires:	pkgconfig(sm)
 BuildRequires:	pkgconfig(libxml-2.0)
