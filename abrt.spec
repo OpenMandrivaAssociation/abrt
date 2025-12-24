@@ -735,6 +735,7 @@ fi
 %{_bindir}/abrt-retrace-cleanup
 %{_bindir}/abrt-retrace-reposync
 %{_bindir}/coredump2packages
+%{_libexecdir}/abrt-action-coredump
 %{py_puresitedir}/retrace.py*
 %{_datadir}/abrt-retrace/*.py*
 %{_datadir}/abrt-retrace/*.wsgi
