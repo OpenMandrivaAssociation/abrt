@@ -539,6 +539,7 @@ fi
 %{_libexecdir}/abrt-handle-event
 %{_libexecdir}/abrt-action-ureport
 %{_libexecdir}/abrt-action-generate-machine-id
+%{_libexecdir}/abrt-action-coredump
 %config(noreplace) %{_sysconfdir}/%{name}/abrt.conf
 %config(noreplace) %{_sysconfdir}/%{name}/abrt-action-save-package-data.conf
 %config(noreplace) %{_sysconfdir}/%{name}/gpg_keys.conf
@@ -735,7 +736,6 @@ fi
 %{_bindir}/abrt-retrace-cleanup
 %{_bindir}/abrt-retrace-reposync
 %{_bindir}/coredump2packages
-%{_libexecdir}/abrt-action-coredump
 %{py_puresitedir}/retrace.py*
 %{_datadir}/abrt-retrace/*.py*
 %{_datadir}/abrt-retrace/*.wsgi
