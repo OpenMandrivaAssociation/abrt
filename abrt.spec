@@ -353,6 +353,11 @@ perl -pi -e 's!-Werror!-Wno-deprecated!' configure{.ac,} */*/Makefile*
 export PYTHON=%__python2
 %endif
 export PYTHONDONTWRITEBYTECODE=True
+# slibtool's AC_PROG_AR runs before the host triplet is known and
+# leaves AR as "cr", so static archives fail to build.
+export AR=ar
+export RANLIB=ranlib
+export NM=nm
 %configure \
     --with-systemdsystemunitdir=%{_unitdir} \
     --disable-rpath \
