@@ -58,7 +58,7 @@ BuildRequires:	augeas
 BuildRequires:	pkgconfig(python)
 %endif
 BuildRequires:	pkgconfig(python3)
-BuildRequires:	python3dist(pytest)
+BuildRequires:	python%{pyver}dist(pytest)
 BuildRequires:	gettext
 BuildRequires:	polkit-1-devel
 BuildRequires:	libzip-devel, libtar-devel, bzip2-devel, zlib-devel
