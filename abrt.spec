@@ -414,6 +414,13 @@ rm -f %{buildroot}%{_bindir}/%{name}-action-rhtsupport
 # After everything is installed, remove info dir
 rm -f %{buildroot}%{_infodir}/dir
 
+# user(abrt) and group(abrt) come from the sysusers file. %pre still
+# creates them before the addon %post chown.
+mkdir -p %{buildroot}%{_sysusersdir}
+cat > %{buildroot}%{_sysusersdir}/abrt.conf <<'EOF'
+u abrt - "ABRT" /etc/abrt /usr/sbin/nologin
+EOF
+
 %pre
 %_pre_useradd %{name} %{_sysconfdir}/%{name} /sbin/nologin
 %_pre_groupadd %{name} %{name}
@@ -527,6 +534,7 @@ fi
 %license COPYING
 %{_unitdir}/abrtd.service
 %{_tmpfilesdir}/abrt.conf
+%{_sysusersdir}/abrt.conf
 %{_sbindir}/%{name}d
 %{_sbindir}/%{name}-server
 %{_sbindir}/%{name}-auto-reporting
